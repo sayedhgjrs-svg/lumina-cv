@@ -227,8 +227,13 @@ def decode_cv(tok):
 
 def qr_uri(text):
     try:
+        import io
         import segno
-        return segno.make(text, error="l").svg_data_uri(scale=4, border=2, dark="#111111", light="#ffffff")
+        buf = io.BytesIO()
+        segno.make(text, error="l").save(buf, kind="svg", scale=4, border=3, dark="#111111", light="#ffffff",
+                                         xmldecl=False, svgns=True, nl=False)
+        svg = buf.getvalue().decode("utf-8").replace("<svg ", '<svg shape-rendering="crispEdges" ', 1)
+        return "data:image/svg+xml;base64," + base64.b64encode(svg.encode("utf-8")).decode()
     except Exception:
         return None
 
@@ -327,9 +332,9 @@ CV_CSS = """
 .cvx .sc{margin-top:26px}
 .cvx .sc h4{font-size:1.1rem;font-weight:700;color:var(--hd);padding-bottom:7px;margin-bottom:12px;border-bottom:2px solid color-mix(in srgb,var(--ac) 65%,transparent)}
 .cvx .sc p{color:var(--tx)}
-.cvx .qr{display:flex;flex-direction:column;align-items:center;gap:4px;margin-inline-start:auto;font-size:.7rem;color:var(--mu);text-align:center}
-.cvx .qr img{width:104px;height:104px;background:#fff;border-radius:8px;padding:2px}
-.t-side aside .qr{margin:26px auto 0;color:#fff}
+.cvx .qrb{display:flex;justify-content:flex-end;margin-top:30px}
+.cvx .qr{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:.78rem;color:var(--mu);text-align:center}
+.cvx .qr img{width:240px;height:240px;max-width:100%;background:#fff;border-radius:10px;padding:4px;border:1px solid var(--bd)}
 .cvx .it{background:var(--cd);border-radius:12px;padding:10px 16px;margin-bottom:8px}
 .cvx .ch{display:inline-block;margin:3px;padding:5px 14px;border-radius:999px;font-weight:600;font-size:.88rem;color:var(--hd);background:color-mix(in srgb,var(--a) 18%,transparent);border:1px solid color-mix(in srgb,var(--ac) 50%,transparent)}
 .t-glass{background:var(--bg);backdrop-filter:blur(14px);border:1px solid var(--bd)}
@@ -401,17 +406,18 @@ def cv_html(d, tpl, theme, photo=None, paper=False, qr=None):
     s_lan = sec("🌍", "h_langs", chips(csv(d["langs"])))
 
     qr_html = f'<div class="qr"><img src="{qr}" alt="QR"/><span>{e(L["qr_label"])}</span></div>' if qr else ""
+    qr_bar = f'<div class="qrb">{qr_html}</div>' if qr_html else ""
     cls = "paper" if (paper or tpl != "glass") else "dark"
     ff = L["ffs"] if tpl == "classic" else L["ff"]
     style = f'--a:{theme["a"]};--b:{theme["b"]};--ff:{ff};'
     ident = f'<div class="id"><h2>{e(name)}</h2><h3>{e(d["title"].strip())}</h3></div>'
 
     if tpl == "side":
-        body = (f'<aside>{av}<div class="sc"><div class="ct">{ct}</div>{lk}</div>{s_ski}{s_lan}{qr_html}</aside>'
-                f'<main>{ident}{s_sum}{s_exp}{s_edu}{s_pro}{s_cou}</main>')
+        body = (f'<aside>{av}<div class="sc"><div class="ct">{ct}</div>{lk}</div>{s_ski}{s_lan}</aside>'
+                f'<main>{ident}{s_sum}{s_exp}{s_edu}{s_pro}{s_cou}{qr_bar}</main>')
     else:
-        head = f'<div class="hd">{av}<div class="id"><h2>{e(name)}</h2><h3>{e(d["title"].strip())}</h3><div class="ct">{ct}</div>{lk}</div>{qr_html}</div>'
-        body = f'{head}{s_sum}{s_exp}{s_edu}{s_pro}{s_cou}{s_ski}{s_lan}'
+        head = f'<div class="hd">{av}<div class="id"><h2>{e(name)}</h2><h3>{e(d["title"].strip())}</h3><div class="ct">{ct}</div>{lk}</div></div>'
+        body = f'{head}{s_sum}{s_exp}{s_edu}{s_pro}{s_cou}{s_ski}{s_lan}{qr_bar}'
     return f'<div class="cvx t-{tpl} {cls}" dir="{L["dir"]}" style="{style}">{body}</div>'
 
 
@@ -606,7 +612,7 @@ elif page == "builder":
                 st.caption(L["share_ready"])
                 st.code(st.session_state.share_link, language=None)
                 if st.session_state.get("share_qr"):
-                    md(f'<div style="text-align:center"><img src="{st.session_state.share_qr}" alt="QR" style="width:170px;height:170px;background:#fff;border-radius:12px;padding:4px"/><div style="color:#aab4cf;font-size:.85rem">{html.escape(L["qr_scan"])}</div></div>')
+                    md(f'<div style="text-align:center"><img src="{st.session_state.share_qr}" alt="QR" style="width:240px;height:240px;background:#fff;border-radius:12px;padding:4px"/><div style="color:#aab4cf;font-size:.85rem">{html.escape(L["qr_scan"])}</div></div>')
                     st.checkbox(L["qr_check"], key="qr_on")
             else:
                 st.info(L["share_addr"])
