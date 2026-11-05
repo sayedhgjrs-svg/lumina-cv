@@ -98,6 +98,7 @@ T = {
         "c_subject": "رسالة من موقع Lumina CV",
         "c_empty": "بيانات التواصل ستتوفر قريبًا.",
         "share_btn": "إنشاء رابط للمشاركة",
+        "qr_check": "أضف رمز QR إلى سيرتي", "qr_label": "امسح لعرضها أونلاين", "qr_scan": "امسح الرمز لفتح سيرتك",
         "share_ready": "انسخ الرابط وأرسله للشركات.",
         "share_note": "سيرتك محفوظة داخل الرابط نفسه وليس على خادمنا. أي شخص معه الرابط يستطيع رؤيتها، والصورة الشخصية لا تُضاف إليه. اضغط الزر مرة أخرى بعد أي تعديل.",
         "share_long": "الرابط طويل جدًا وقد لا يفتح في كل مكان. اختصر بعض النصوص وحاول مجددًا.",
@@ -181,6 +182,7 @@ T = {
         "c_subject": "Message from Lumina CV",
         "c_empty": "Contact details are coming soon.",
         "share_btn": "Create shareable link",
+        "qr_check": "Add a QR code to my resume", "qr_label": "Scan to view online", "qr_scan": "Scan the code to open your resume",
         "share_ready": "Copy the link and send it to employers.",
         "share_note": "Your resume is stored inside the link itself, not on our server. Anyone with the link can see it, and your photo is not included. Click the button again after any edit.",
         "share_long": "This link is very long and may not open everywhere. Shorten some text and try again.",
@@ -223,6 +225,14 @@ def decode_cv(tok):
         return None
 
 
+def qr_uri(text):
+    try:
+        import segno
+        return segno.make(text, error="l").svg_data_uri(scale=4, border=2, dark="#111111", light="#ffffff")
+    except Exception:
+        return None
+
+
 def base_url():
     try:
         u = st.context.url
@@ -248,10 +258,12 @@ st.session_state.setdefault("tpl", "glass")
 st.session_state.setdefault("th", 0)
 st.session_state.setdefault("photo", None)
 st.session_state.setdefault("photo_n", 0)
-if "view_checked" not in st.session_state:
-    st.session_state.view_checked = True
-    st.session_state.view = None
-    _v = decode_cv(st.query_params.get("cv"))
+st.session_state.setdefault("view", None)
+st.session_state.setdefault("qr_on", False)
+_tin = st.query_params.get("cv")
+if (_tin and not st.session_state.view and _tin != st.session_state.get("share_tok")
+        and _tin != st.session_state.get("view_dismissed")):
+    _v = decode_cv(_tin)
     if _v:
         st.session_state.view = _v
         st.session_state.lang, st.session_state.tpl, st.session_state.th = _v["l"], _v["t"], _v["h"]
@@ -260,7 +272,7 @@ if "view_checked" not in st.session_state:
 for _lg in T:
     for _f in FIELDS:
         st.session_state[f"{_f}_{_lg}"] = st.session_state[f"{_f}_{_lg}"]
-for _k in ("page", "lang", "tpl", "th"):
+for _k in ("page", "lang", "tpl", "th", "qr_on"):
     st.session_state[_k] = st.session_state[_k]
 
 lang = st.session_state.lang
@@ -275,6 +287,7 @@ def go(page, tpl=None):
 
 
 def exit_view():
+    st.session_state.view_dismissed = st.query_params.get("cv")
     st.session_state.view = None
     st.query_params.clear()
     st.session_state.page = "builder"
@@ -314,6 +327,9 @@ CV_CSS = """
 .cvx .sc{margin-top:26px}
 .cvx .sc h4{font-size:1.1rem;font-weight:700;color:var(--hd);padding-bottom:7px;margin-bottom:12px;border-bottom:2px solid color-mix(in srgb,var(--ac) 65%,transparent)}
 .cvx .sc p{color:var(--tx)}
+.cvx .qr{display:flex;flex-direction:column;align-items:center;gap:4px;margin-inline-start:auto;font-size:.7rem;color:var(--mu);text-align:center}
+.cvx .qr img{width:104px;height:104px;background:#fff;border-radius:8px;padding:2px}
+.t-side aside .qr{margin:26px auto 0;color:#fff}
 .cvx .it{background:var(--cd);border-radius:12px;padding:10px 16px;margin-bottom:8px}
 .cvx .ch{display:inline-block;margin:3px;padding:5px 14px;border-radius:999px;font-weight:600;font-size:.88rem;color:var(--hd);background:color-mix(in srgb,var(--a) 18%,transparent);border:1px solid color-mix(in srgb,var(--ac) 50%,transparent)}
 .t-glass{background:var(--bg);backdrop-filter:blur(14px);border:1px solid var(--bd)}
@@ -348,7 +364,7 @@ def csv(text):
     return [x.strip() for x in text.replace("،", ",").split(",") if x.strip()]
 
 
-def cv_html(d, tpl, theme, photo=None, paper=False):
+def cv_html(d, tpl, theme, photo=None, paper=False, qr=None):
     e = html.escape
     name = d["name"].strip()
     initials = "".join(w[0] for w in name.split()[:2]).upper() or "CV"
@@ -384,22 +400,23 @@ def cv_html(d, tpl, theme, photo=None, paper=False):
     s_ski = sec("⚡", "h_skills", chips(csv(d["skills"])))
     s_lan = sec("🌍", "h_langs", chips(csv(d["langs"])))
 
+    qr_html = f'<div class="qr"><img src="{qr}" alt="QR"/><span>{e(L["qr_label"])}</span></div>' if qr else ""
     cls = "paper" if (paper or tpl != "glass") else "dark"
     ff = L["ffs"] if tpl == "classic" else L["ff"]
     style = f'--a:{theme["a"]};--b:{theme["b"]};--ff:{ff};'
     ident = f'<div class="id"><h2>{e(name)}</h2><h3>{e(d["title"].strip())}</h3></div>'
 
     if tpl == "side":
-        body = (f'<aside>{av}<div class="sc"><div class="ct">{ct}</div>{lk}</div>{s_ski}{s_lan}</aside>'
+        body = (f'<aside>{av}<div class="sc"><div class="ct">{ct}</div>{lk}</div>{s_ski}{s_lan}{qr_html}</aside>'
                 f'<main>{ident}{s_sum}{s_exp}{s_edu}{s_pro}{s_cou}</main>')
     else:
-        head = f'<div class="hd">{av}<div class="id"><h2>{e(name)}</h2><h3>{e(d["title"].strip())}</h3><div class="ct">{ct}</div>{lk}</div></div>'
+        head = f'<div class="hd">{av}<div class="id"><h2>{e(name)}</h2><h3>{e(d["title"].strip())}</h3><div class="ct">{ct}</div>{lk}</div>{qr_html}</div>'
         body = f'{head}{s_sum}{s_exp}{s_edu}{s_pro}{s_cou}{s_ski}{s_lan}'
     return f'<div class="cvx t-{tpl} {cls}" dir="{L["dir"]}" style="{style}">{body}</div>'
 
 
-def download_doc(d, tpl, theme, photo):
-    body = cv_html(d, tpl, theme, photo, paper=True)
+def download_doc(d, tpl, theme, photo, qr=None):
+    body = cv_html(d, tpl, theme, photo, paper=True, qr=qr)
     return f"""<!DOCTYPE html><html lang="{lang}" dir="{L['dir']}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{html.escape(d['name'])} - {'Resume' if lang == 'en' else 'CV'}</title>
@@ -568,26 +585,33 @@ elif page == "builder":
 
     with prev:
         d = current_data()
+        _qr = st.session_state.get("share_qr") if st.session_state.qr_on else None
         st.download_button("⬇️ " + L["download"], type="primary",
-                           data=download_doc(d, st.session_state.tpl, TH, photo).encode("utf-8"),
+                           data=download_doc(d, st.session_state.tpl, TH, photo, _qr).encode("utf-8"),
                            file_name=f"{'Resume' if lang == 'en' else 'CV'}_{d['name'].strip().replace(' ', '_') or 'CV'}.html",
                            mime="text/html", use_container_width=True)
         st.caption(L["tip"])
         if st.button("🔗 " + L["share_btn"], key="share_btn", use_container_width=True):
-            st.session_state.share_tok = encode_cv(d, st.session_state.tpl, st.session_state.th, lang)
-            st.query_params["cv"] = st.session_state.share_tok
+            _t = encode_cv(d, st.session_state.tpl, st.session_state.th, lang)
+            st.session_state.share_tok = _t
+            st.query_params["cv"] = _t
+            _b = base_url()
+            st.session_state.share_link = f"{_b}?cv={_t}" if _b and len(_t) <= 6000 else None
+            st.session_state.share_qr = qr_uri(st.session_state.share_link) if st.session_state.share_link else None
         _tok = st.session_state.get("share_tok")
         if _tok:
-            _b = base_url()
             if len(_tok) > 6000:
                 st.warning(L["share_long"])
-            elif _b:
+            elif st.session_state.get("share_link"):
                 st.caption(L["share_ready"])
-                st.code(f"{_b}?cv={_tok}", language=None)
+                st.code(st.session_state.share_link, language=None)
+                if st.session_state.get("share_qr"):
+                    md(f'<div style="text-align:center"><img src="{st.session_state.share_qr}" alt="QR" style="width:170px;height:170px;background:#fff;border-radius:12px;padding:4px"/><div style="color:#aab4cf;font-size:.85rem">{html.escape(L["qr_scan"])}</div></div>')
+                    st.checkbox(L["qr_check"], key="qr_on")
             else:
                 st.info(L["share_addr"])
             st.caption(L["share_note"])
-        md(cv_html(d, st.session_state.tpl, TH, photo))
+        md(cv_html(d, st.session_state.tpl, TH, photo, qr=_qr))
 
 # =====================================================================
 # القوالب
