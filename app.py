@@ -121,7 +121,7 @@ T = {
     },
     "en": {
         "dir": "ltr", "ff": "'Plus Jakarta Sans','Segoe UI',sans-serif", "ffs": "'Source Serif 4',Georgia,serif",
-        "nav": ["Home", "Resume Builder", "Templates", "How it works", "Contact"],
+        "nav": ["Home", "Builder", "Templates", "How it works", "Contact"],
         "lang_label": "Language",
         "hero_title": "Build a resume that gets noticed",
         "hero_sub": "Fill in your details, pick a template and color, and download a print-ready resume in minutes. Bilingual and completely free.",
@@ -438,6 +438,14 @@ header[data-testid="stHeader"],#MainMenu,footer,[data-testid="stSidebar"],[data-
 .stButton button[kind="primary"],.stButton button[data-testid="stBaseButton-primary"],.stDownloadButton button,.stLinkButton a{{background:linear-gradient(135deg,{A},{B})!important;color:#fff!important;border:0!important;font-weight:700;padding:.65rem 1.2rem;border-radius:14px!important}}
 .stButton button *,.stDownloadButton button *,.stLinkButton a *{{color:inherit!important}}
 .stButton button:hover,.stDownloadButton button:hover,.stLinkButton a:hover{{transform:translateY(-2px);box-shadow:0 8px 28px color-mix(in srgb,{B} 55%,transparent)}}
+.st-key-topnav .stButton button{{padding:.5rem .4rem;white-space:nowrap;font-size:.92rem}}
+@media(max-width:768px){{
+.st-key-topnav [data-testid="stHorizontalBlock"]{{flex-wrap:wrap!important;gap:6px!important}}
+.st-key-topnav [data-testid="stColumn"]{{width:auto!important;min-width:0!important;flex:1 1 auto!important}}
+.st-key-topnav [data-testid="stColumn"]:first-child{{flex:1 1 100%!important}}
+.st-key-topnav .stButton button{{min-height:2.1rem;padding:.3rem .6rem;font-size:.85rem}}
+.block-container{{padding-left:1rem;padding-right:1rem}}
+}}
 .stRadio [role="radiogroup"]{{gap:6px;flex-wrap:wrap}}
 .stRadio label[data-baseweb="radio"]{{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:6px 16px;margin:0;cursor:pointer}}
 .stRadio label[data-baseweb="radio"]>div:first-child{{display:none}}
@@ -489,15 +497,14 @@ if st.session_state.view:
     st.stop()
 
 page = st.session_state.page
-h1, h2, h3 = st.columns([2, 8, 1.6], vertical_alignment="center")
-with h1:
-    md('<div class="brand">✨ Lumina CV</div>')
-with h2:
-    for _c, _p in zip(st.columns(len(PAGES)), PAGES):
+with st.container(key="topnav"):
+    _cols = st.columns([2.4, 1.1, 1.3, 1.1, 1.4, 1.1, 1.1], vertical_alignment="center")
+    with _cols[0]:
+        md('<div class="brand">✨ Lumina CV</div>')
+    for _c, _p in zip(_cols[1:6], PAGES):
         _c.button(L["nav"][PAGES.index(_p)], key=f"nav_{_p}", on_click=go, args=(_p,),
                   type="primary" if page == _p else "secondary", use_container_width=True)
-with h3:
-    st.button("English" if lang == "ar" else "العربية", key="lang_btn", on_click=toggle_lang, use_container_width=True)
+    _cols[6].button("English" if lang == "ar" else "العربية", key="lang_btn", on_click=toggle_lang, use_container_width=True)
 demo = L["demo"]
 photo = st.session_state.photo
 
