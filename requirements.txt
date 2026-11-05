@@ -1,26 +1,2 @@
-# ---------------------------------------------------------------------------
-# Arabic video automation - Python dependencies
-# Install with:  python -m pip install -r requirements.txt
-# ---------------------------------------------------------------------------
-
-# Video assembly, image clips, audio muxing
-moviepy>=2.1.2,<3.0
-
-# Google Text-to-Speech (Arabic voiceover)
-gTTS>=2.5.3
-
-# HTTP client for Pollinations image generation
-requests>=2.31.0
-
-# Image processing and drawing Arabic text onto frames
-Pillow>=10.4.0
-
-# Array maths for gradients, noise and silent fallback audio
-numpy>=1.26.0
-
-# Arabic glyph shaping + bidirectional layout (needed by Pillow)
-arabic-reshaper>=3.0.0
-python-bidi>=0.6.0
-
-# Web interface (streamlit run app.py)
-streamlit>=1.40.0
+streamlit>=1.40
+segno
