@@ -1,654 +1,180 @@
-import base64
-import html
-import json
-import zlib
-from urllib.parse import quote
-
 import streamlit as st
+import os
+from PIL import Image
 
-st.set_page_config(page_title="Lumina CV | Free Resume Builder", page_icon="✨", layout="wide", initial_sidebar_state="collapsed")
+# 1. إعدادات الصفحة والواجهة الاحترافية العريضة
+st.set_page_config(page_title="LUMINA CV PRO | مصمم السير الذاتية العالمي", layout="wide", initial_sidebar_state="expanded")
 
-# =====================================================================
-# بيانات التواصل (غيّرها بقيمك الحقيقية) / Contact details (edit these)
-# =====================================================================
-CONTACT = {
-    "email": "sayedhgjrs@gmail.com",      # e.g. "hello@yourdomain.com"
-    "phone": "+20 109 649 4090",      # e.g. "+1 555 000 0000"
-    "linkedin": "https://www.linkedin.com/in/sayed-hagrs",   # full URL
-    "github": "https://github.com/sayedhgjrs-svg",     # full URL
-    "x": "https://x.com/sayedhgjrs2h",          # full URL
-    "loc": {"ar": "", "en": ""},
-}
+# حقن ستايل CSS سينمائي مبهر مع إخفاء كامل لشعارات وقوائم المنصة لحماية احترافية الموقع
+st.markdown("""
+    <style>
+    /* 🔒 كود سحري لإخفاء شعار وقوائم وأزرار المنصة تماماً من الهاتف والكمبيوتر */
+    #MainMenu {visibility: hidden;}
+    header {visibility: hidden;}
+    footer {visibility: hidden;}
+    .viewerBadge_container__171of, [data-testid="stViewerBadge"], .stDeployButton {
+        display: none !important;
+        visibility: hidden !important;
+    }
 
-PAGES = ["home", "builder", "templates", "how", "contact"]
-TPLS = ["glass", "classic", "side"]
-FIELDS = ["name", "title", "email", "phone", "city", "links", "summary", "exp", "edu",
-          "projects", "courses", "skills", "langs"]
+    /* تغيير خلفية الموقع بالكامل إلى الوضع الداكن الفاخر */
+    .stApp {
+        background: linear-gradient(135deg, #0b0914 0%, #110d26 50%, #050409 100%) !important;
+        color: #e2e8f0 !important;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    /* تصميم ورقة المعاينة التفاعلية لتكون بيضاء وأنيقة وتطفو بتأثير ثلاثي الأبعاد */
+    .cv-preview-card {
+        background-color: #ffffff !important;
+        color: #1e293b !important;
+        padding: 45px !important;
+        border-radius: 16px !important;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(0, 198, 255, 0.1) !important;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        line-height: 1.6;
+        margin-top: 10px;
+    }
+    
+    /* تأثيرات التوهج على حقول المدخلات */
+    .stTextInput input, .stTextArea textarea {
+        background-color: rgba(255, 255, 255, 0.03) !important;
+        color: #00ffcc !important;
+        border: 1px solid rgba(255, 0, 127, 0.3) !important;
+        border-radius: 8px !important;
+        transition: all 0.3s ease-in-out;
+    }
+    .stTextInput input:focus, .stTextArea textarea:focus {
+        border-color: #00ffcc !important;
+        box-shadow: 0 0 15px rgba(0, 255, 204, 0.4) !important;
+    }
+    
+    /* تصميم زر الطباعة المتوهج الكبير في الأسفل */
+    .print-btn-container .stButton>button {
+        background: linear-gradient(90deg, #ff007f 0%, #7928ca 100%) !important;
+        color: white !important;
+        font-weight: bold !important;
+        font-size: 22px !important;
+        border: none !important;
+        border-radius: 50px !important;
+        padding: 15px 40px !important;
+        box-shadow: 0 0 25px rgba(255, 0, 127, 0.5) !important;
+        transition: all 0.3s ease-in-out !important;
+        width: 100%;
+        cursor: pointer;
+    }
+    .print-btn-container .stButton>button:hover {
+        transform: scale(1.02) !important;
+        box-shadow: 0 0 40px #00ffcc !important;
+        color: #00ffcc !important;
+    }
+    
+    /* ستايلات ورموز التحكم في شكل ورقة السيرة الذاتية أثناء الطباعة الفعلية */
+    @media print {
+        header, footer, .stSidebar, .stButton, .stFileUploader, .print-btn-container, div[data-testid="stSidebar"] {
+            display: none !important;
+        }
+        .stApp {
+            background: white !important;
+            color: black !important;
+        }
+        .cv-preview-card {
+            box-shadow: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            border: none !important;
+        }
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
-THEMES = [
-    {"a": "#00f5d4", "b": "#7b2ff7", "bg": "#070b14"},
-    {"a": "#c77dff", "b": "#ff5db1", "bg": "#0d0716"},
-    {"a": "#ffd166", "b": "#ef8354", "bg": "#100c06"},
-    {"a": "#4cc9f0", "b": "#4361ee", "bg": "#060c1a"},
-]
+# 2. القائمة الجانبية الأنيقة للتحكم بالكامل وفصل اللغتين
+st.sidebar.markdown("<h2 style='color:#00ffcc; text-shadow:0 0 10px #00ffcc;'>🌐 الإعدادات / Settings</h2>", unsafe_allow_html=True)
+lang = st.sidebar.radio("اختر لغة واجهة الـ CV المستهدفة:", ["العربية", "English"])
 
-# =====================================================================
-# النصوص: ترجمة كاملة لكل لغة
-# =====================================================================
-T = {
-    "ar": {
-        "dir": "rtl", "ff": "'Cairo','Segoe UI',sans-serif", "ffs": "'Cairo','Segoe UI',sans-serif",
-        "nav": ["الرئيسية", "منشئ السيرة", "القوالب", "كيف يعمل", "تواصل معنا"],
-        "lang_label": "اللغة",
-        "hero_title": "اصنع سيرتك الذاتية بشكل يلفت الانتباه",
-        "hero_sub": "املأ بياناتك، اختر القالب واللون، وحمّل سيرة ذاتية جاهزة للطباعة خلال دقائق. ثنائية اللغة، ومجانية بالكامل.",
-        "cta_start": "ابدأ الآن", "cta_tpl": "تصفح القوالب",
-        "prev_title": "هكذا ستبدو سيرتك",
-        "feat_title": "كل ما تحتاجه في مكان واحد",
-        "features": [
-            ("🌐", "عربي وإنجليزي بالكامل", "كل نص يتغير مع اللغة، والعربية تعمل من اليمين لليسار تلقائيًا."),
-            ("🎨", "ثلاثة قوالب وأربعة ألوان", "زجاجي، كلاسيكي، وعمودين. غيّر المظهر بضغطة واحدة."),
-            ("🖼️", "صورة شخصية", "ارفع صورتك لتظهر داخل السيرة وفي الملف المحمّل."),
-            ("🖨️", "جاهزة للطباعة وPDF", "ملف بتصميم أبيض نظيف تحفظه PDF من المتصفح."),
-            ("🧩", "أقسام كاملة", "نبذة، خبرات، تعليم، مشاريع، دورات، مهارات، لغات وروابط."),
-            ("🔒", "بدون حساب", "لا تسجيل ولا قاعدة بيانات. بياناتك تبقى في جلستك فقط."),
-        ],
-        "steps_title": "ثلاث خطوات فقط",
-        "steps": [
-            ("املأ بياناتك", "اكتب معلوماتك في المنشئ وشاهد المعاينة تتحدث فورًا."),
-            ("اختر التصميم", "قالب ولون يناسبان مجالك."),
-            ("حمّل واطبع", "حمّل الملف ثم احفظه PDF من المتصفح."),
-        ],
-        "b_title": "منشئ السيرة الذاتية", "b_sub": "عدّل البيانات على الجانب وشاهد النتيجة مباشرة.",
-        "s_design": "التصميم", "tpl_label": "القالب", "theme_label": "اللون",
-        "s_personal": "البيانات الشخصية", "s_content": "المحتوى", "s_extra": "أقسام إضافية",
-        "f_name": "الاسم الكامل", "f_title": "المسمى الوظيفي", "f_email": "البريد الإلكتروني",
-        "f_phone": "رقم الهاتف", "f_city": "المدينة",
-        "f_links": "الروابط (رابط في كل سطر)", "f_summary": "نبذة مهنية",
-        "f_exp": "الخبرات العملية (خبرة في كل سطر)", "f_edu": "التعليم والشهادات (عنصر في كل سطر)",
-        "f_projects": "المشاريع (مشروع في كل سطر)", "f_courses": "الدورات (دورة في كل سطر)",
-        "f_skills": "المهارات (افصل بينها بفاصلة)", "f_langs": "اللغات (افصل بينها بفاصلة)",
-        "photo": "ارفع صورتك الشخصية", "photo_ok": "تم رفع الصورة", "photo_rm": "حذف الصورة",
-        "h_summary": "النبذة المهنية", "h_exp": "الخبرات العملية", "h_edu": "التعليم والشهادات",
-        "h_projects": "المشاريع", "h_courses": "الدورات", "h_skills": "المهارات", "h_langs": "اللغات",
-        "download": "تحميل السيرة الذاتية", "tip": "افتح الملف ثم اضغط Ctrl+P واختر Save as PDF.",
-        "tpl_names": {"glass": "زجاجي", "classic": "كلاسيكي", "side": "عمودان"},
-        "tpl_desc": {"glass": "خلفية داكنة متوهجة للعرض على الشاشة. عند التحميل يتحول إلى أبيض نظيف.",
-                     "classic": "عمود واحد بسيط وواضح، الأنسب لأنظمة فرز السير الذاتية.",
-                     "side": "شريط جانبي ملون للمعلومات والمهارات ومحتوى رئيسي بجانبه."},
-        "theme_names": ["سيان نيون", "بنفسجي ملكي", "ذهبي فاخر", "أزرق محيطي"],
-        "t_title": "القوالب", "t_sub": "اختر التصميم الأقرب لمجالك، ويمكنك تغييره لاحقًا.",
-        "t_use": "استخدم هذا القالب", "t_cur": "القالب الحالي",
-        "how_title": "كيف يعمل", "faq_title": "الأسئلة الشائعة",
-        "faqs": [
-            ("هل المنصة مجانية؟", "نعم، مجانية بالكامل ولا تحتاج إلى حساب."),
-            ("هل بياناتي محفوظة؟", "لا تُكتب بياناتك في أي قاعدة بيانات. تبقى في جلستك أثناء فتح الصفحة، وتختفي عند إغلاقها أو تحديثها، لذلك حمّل ملفك قبل الخروج."),
-            ("كيف أحصل على ملف PDF؟", "حمّل الملف، افتحه في المتصفح، اضغط Ctrl+P ثم اختر Save as PDF."),
-            ("هل يتم ترجمة ما أكتبه عند تغيير اللغة؟", "لا. لكل لغة حقولها الخاصة، فاكتب النسخة العربية والإنجليزية كل واحدة على حدة."),
-            ("ما صيغ الصور المدعومة؟", "PNG وJPG وJPEG وWebP."),
-            ("أي قالب أنسب لأنظمة فرز السير؟", "القالب الكلاسيكي لأنه عمود واحد بنص بسيط بدون عناصر معقدة."),
-            ("هل أستطيع مشاركة سيرتي برابط؟", "نعم. اضغط إنشاء رابط للمشاركة في المنشئ وانسخ الرابط. بياناتك تُحفظ داخل الرابط نفسه، وأي شخص معه الرابط يستطيع رؤيتها."),
-        ],
-        "priv_title": "الخصوصية", "priv_text": "لا نجمع بياناتك الشخصية ولا نبيعها ولا نخزنها في قاعدة بيانات. تُعالج المعلومات التي تكتبها داخل جلستك فقط لإنشاء سيرتك.",
-        "terms_title": "شروط الاستخدام", "terms_text": "الخدمة مقدمة كما هي. أنت المسؤول عن صحة المعلومات التي تضعها في سيرتك الذاتية.",
-        "c_title": "تواصل معنا", "c_sub": "عندك اقتراح أو واجهت مشكلة؟ راسلنا.",
-        "c_email": "البريد الإلكتروني", "c_phone": "الهاتف", "c_loc": "الموقع", "c_social": "تابعنا",
-        "c_form": "أرسل رسالة", "c_name": "اسمك", "c_mail": "بريدك الإلكتروني", "c_msg": "رسالتك",
-        "c_send": "أرسل عبر البريد", "c_hint": "سيفتح زر الإرسال تطبيق البريد لديك والرسالة جاهزة.",
-        "c_subject": "رسالة من موقع Lumina CV",
-        "c_empty": "بيانات التواصل ستتوفر قريبًا.",
-        "share_btn": "إنشاء رابط للمشاركة",
-        "share_ready": "انسخ الرابط وأرسله للشركات.",
-        "share_note": "سيرتك محفوظة داخل الرابط نفسه وليس على خادمنا. أي شخص معه الرابط يستطيع رؤيتها، والصورة الشخصية لا تُضاف إليه. اضغط الزر مرة أخرى بعد أي تعديل.",
-        "share_long": "الرابط طويل جدًا وقد لا يفتح في كل مكان. اختصر بعض النصوص وحاول مجددًا.",
-        "share_addr": "تم إنشاء الرابط. انسخه من شريط العنوان في المتصفح.",
-        "view_made": "تم إنشاء هذه السيرة الذاتية مجانًا عبر Lumina CV",
-        "view_cta": "اصنع سيرتك مجانًا",
-        "photo_hint": "الصورة اختيارية.",
-        "footer": "جميع الحقوق محفوظة", "footer2": "صُنع لمساعدتك على الحصول على الوظيفة",
-        "demo": {
-            "name": "أحمد سعيد", "title": "مهندس برمجيات متكامل", "email": "ahmed.said@email.com",
-            "phone": "+20 100 123 4567", "city": "القاهرة، مصر",
-            "links": "linkedin.com/in/ahmed-said\ngithub.com/ahmed-said",
-            "summary": "مهندس برمجيات يسعى للنتائج، لديه خبرة واسعة في تصميم وبناء ونشر تطبيقات سحابية قوية وأنظمة مؤتمتة للشركات.",
-            "exp": "مهندس برمجيات أول - نيكساتك (2022 - الآن)\nمطور برمجيات - كوانتم كود (2020 - 2022)",
-            "edu": "بكالوريوس هندسة الحاسبات - جامعة القاهرة (امتياز / 2019)",
-            "projects": "منصة حجوزات سحابية تخدم أكثر من 10 آلاف مستخدم\nأداة لأتمتة النشر المستمر للفرق الصغيرة",
-            "courses": "شهادة AWS Solutions Architect\nدورة التصميم المعماري للأنظمة الموزعة",
-            "skills": "بايثون, ريأكت, AWS, دوكر, SQL, جو",
-            "langs": "العربية (اللغة الأم), الإنجليزية (متقدم)",
-        },
-    },
-    "en": {
-        "dir": "ltr", "ff": "'Plus Jakarta Sans','Segoe UI',sans-serif", "ffs": "'Source Serif 4',Georgia,serif",
-        "nav": ["Home", "Resume Builder", "Templates", "How it works", "Contact"],
-        "lang_label": "Language",
-        "hero_title": "Build a resume that gets noticed",
-        "hero_sub": "Fill in your details, pick a template and color, and download a print-ready resume in minutes. Bilingual and completely free.",
-        "cta_start": "Get started", "cta_tpl": "Browse templates",
-        "prev_title": "This is how your resume will look",
-        "feat_title": "Everything you need in one place",
-        "features": [
-            ("🌐", "Fully bilingual", "Every text switches with the language, and Arabic runs right-to-left automatically."),
-            ("🎨", "Three templates, four colors", "Glass, classic and two-column. Change the look in one click."),
-            ("🖼️", "Profile photo", "Upload your photo to show it in the resume and in the downloaded file."),
-            ("🖨️", "Print and PDF ready", "A clean white file you can save as PDF from your browser."),
-            ("🧩", "Complete sections", "Summary, experience, education, projects, courses, skills, languages and links."),
-            ("🔒", "No account needed", "No sign-up and no database. Your data stays in your session only."),
-        ],
-        "steps_title": "Just three steps",
-        "steps": [
-            ("Fill in your details", "Type your information in the builder and watch the preview update."),
-            ("Choose a design", "Pick the template and color that suit your field."),
-            ("Download and print", "Download the file, then save it as PDF from your browser."),
-        ],
-        "b_title": "Resume Builder", "b_sub": "Edit your details on the side and see the result live.",
-        "s_design": "Design", "tpl_label": "Template", "theme_label": "Color",
-        "s_personal": "Personal details", "s_content": "Content", "s_extra": "Extra sections",
-        "f_name": "Full name", "f_title": "Job title", "f_email": "Email address",
-        "f_phone": "Phone number", "f_city": "City",
-        "f_links": "Links (one per line)", "f_summary": "Professional summary",
-        "f_exp": "Work experience (one job per line)", "f_edu": "Education & certifications (one per line)",
-        "f_projects": "Projects (one per line)", "f_courses": "Courses (one per line)",
-        "f_skills": "Skills (separate with commas)", "f_langs": "Languages (separate with commas)",
-        "photo": "Upload your profile photo", "photo_ok": "Photo uploaded", "photo_rm": "Remove photo",
-        "h_summary": "Professional Summary", "h_exp": "Work Experience", "h_edu": "Education & Certifications",
-        "h_projects": "Projects", "h_courses": "Courses", "h_skills": "Skills", "h_langs": "Languages",
-        "download": "Download resume", "tip": "Open the file, press Ctrl+P and choose Save as PDF.",
-        "tpl_names": {"glass": "Glass", "classic": "Classic", "side": "Two-column"},
-        "tpl_desc": {"glass": "A glowing dark look for the screen. It turns into clean white when downloaded.",
-                     "classic": "A simple single column, the best fit for applicant tracking systems.",
-                     "side": "A colored sidebar for contact and skills with the main content beside it."},
-        "theme_names": ["Neon Cyan", "Royal Purple", "Luxury Gold", "Ocean Blue"],
-        "t_title": "Templates", "t_sub": "Pick the design closest to your field. You can change it later.",
-        "t_use": "Use this template", "t_cur": "Current template",
-        "how_title": "How it works", "faq_title": "Frequently asked questions",
-        "faqs": [
-            ("Is it free?", "Yes, it is completely free and needs no account."),
-            ("Is my data saved?", "Your data is never written to a database. It stays in your session while the page is open and disappears when you close or refresh it, so download your file before leaving."),
-            ("How do I get a PDF?", "Download the file, open it in your browser, press Ctrl+P and choose Save as PDF."),
-            ("Is my text translated when I switch language?", "No. Each language has its own fields, so write the Arabic and English versions separately."),
-            ("Which photo formats are supported?", "PNG, JPG, JPEG and WebP."),
-            ("Which template suits applicant tracking systems?", "The Classic template, because it is a single column of plain text with no complex elements."),
-            ("Can I share my resume with a link?", "Yes. Click Create shareable link in the builder and copy it. Your data is stored inside the link itself, and anyone with the link can see it."),
-        ],
-        "priv_title": "Privacy", "priv_text": "We do not collect, sell or store your personal data in a database. The information you type is processed inside your session only to build your resume.",
-        "terms_title": "Terms of use", "terms_text": "The service is provided as is. You are responsible for the accuracy of the information in your resume.",
-        "c_title": "Contact us", "c_sub": "Have a suggestion or ran into a problem? Write to us.",
-        "c_email": "Email", "c_phone": "Phone", "c_loc": "Location", "c_social": "Follow us",
-        "c_form": "Send a message", "c_name": "Your name", "c_mail": "Your email", "c_msg": "Your message",
-        "c_send": "Send by email", "c_hint": "The send button opens your email app with the message ready.",
-        "c_subject": "Message from Lumina CV",
-        "c_empty": "Contact details are coming soon.",
-        "share_btn": "Create shareable link",
-        "share_ready": "Copy the link and send it to employers.",
-        "share_note": "Your resume is stored inside the link itself, not on our server. Anyone with the link can see it, and your photo is not included. Click the button again after any edit.",
-        "share_long": "This link is very long and may not open everywhere. Shorten some text and try again.",
-        "share_addr": "Link created. Copy it from your browser's address bar.",
-        "view_made": "This resume was created for free with Lumina CV",
-        "view_cta": "Create yours for free",
-        "photo_hint": "Photos are optional. Most US employers prefer resumes without one.",
-        "footer": "All rights reserved", "footer2": "Built to help you land the job",
-        "demo": {
-            "name": "Alexander Wright", "title": "Senior Full-Stack Engineer", "email": "alex.wright@email.com",
-            "phone": "+1 555 019 2834", "city": "New York, USA",
-            "links": "linkedin.com/in/alex-wright\ngithub.com/alex-wright",
-            "summary": "Results-driven full-stack engineer with extensive experience designing, building and deploying robust cloud applications and automated enterprise pipelines.",
-            "exp": "Senior Full-Stack Engineer - NexaTech Solutions (2022 - Present)\nSoftware Developer - Quantum Code Systems (2020 - 2022)",
-            "edu": "B.Sc. in Computer Engineering - MIT (GPA 3.9 / 2019)",
-            "projects": "Cloud booking platform serving 10,000+ users\nContinuous deployment automation tool for small teams",
-            "courses": "AWS Solutions Architect certification\nDistributed systems architecture course",
-            "skills": "Python, React, AWS, Docker, SQL, Go",
-            "langs": "English (Native), Arabic (Fluent)",
-        },
-    },
-}
+st.sidebar.markdown("---")
+st.sidebar.markdown("<h3 style='color:#ff007f;'>📝 بياناتك الشخصية</h3>", unsafe_allow_html=True)
 
-def encode_cv(d, tpl, th, lg):
-    raw = json.dumps({"v": 1, "l": lg, "t": tpl, "h": th, "d": d}, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-    return base64.urlsafe_b64encode(zlib.compress(raw, 9)).decode().rstrip("=")
+if lang == "العربية":
+    align_dir = "right"
+    flex_dir = "row-reverse"
+    title_main = "✨ لُومِـينَا سْـتُودْيُو لِلسِّيرَة الذَّاتِيَّة الاحتِرَافِيَّة"
+    desc_main = "⚡ المنصة العالمية لإنتاج وتصميم السير الذاتية التفاعلية مجاناً. أدخل بياناتك باليسار واطبع ملفك فوراً بضغطة زر!"
+    lbl_name, def_name = "الاسم الكامل المربع:", "أحمد محمود العراقي"
+    lbl_job, def_job = "المسمى الوظيفي المستهدف:", "مهندس برمجيات ومطور تطبيقات ويب"
+    lbl_email, def_email = "البريد الإلكتروني:", "ahmed.developer@email.com"
+    lbl_phone, def_phone = "رقم الهاتف والاتصال:", "+20 100 123 4567"
+    lbl_summary, def_summary = "النبذة الشخصية (الملخص المهني):", "مطور ويب متكامل وشغوف بخبرة ممتدة في بناء وتطوير الأنظمة الذكية وتطبيقات السيرفر باستخدام لغات البرمجة الحديثة وبايثون."
+    lbl_exp, def_exp = "الخبرات العملية السابقة (اكتب كل وظيفة في سطر):", "• مهندس برمجيات رئيسي - شركة التقنية الدولية (2022 - الآن)\n• مطور واجهات خلفية - شركة الحلول الرقمية (2020 - 2022)"
+    lbl_edu, def_edu = "المؤهلات التعليمية والشهادات:", "بكالوريوس هندسة الحاسبات والمعلومات - جامعة القاهرة (تقدير ممتاز - 2019)"
+    lbl_skills, def_skills = "المهارات التنافسية الأساسية (افصل بينها بفاصلة):", "Python, Streamlit, JavaScript, Docker, SQL, REST APIs, Git"
+    btn_print_text = "🚀 اِطبع السيرة الذاتية الآن أو احفظ كـ PDF"
+else:
+    align_dir = "left"
+    flex_dir = "row"
+    title_main = "✨ LUMINA PRO INTERACTIVE CV MATRIX"
+    desc_main = "⚡ The ultimate world-class engine to build highly attractive professional resumes. Fill your data on the left and print instantly!"
+    lbl_name, def_name = "Full Name:", "Alexander Wright"
+    lbl_job, def_job = "Target Job Title:", "Senior Full-Stack Web Engineer"
+    lbl_email, def_email = "Email Address:", "alex.wright.dev@email.com"
+    lbl_phone, def_phone = "Phone Number:", "+1 (555) 019-2834"
+    lbl_summary, def_summary = "Professional Summary:", "Results-driven Full Stack Engineer with extensive experience in designing, building, and deploying robust cloud applications and automated enterprise pipelines."
+    lbl_exp, def_exp = "Work Experience (One job entry per line):", "• Senior Full-Stack Engineer - NexaTech Solutions (2022 - Present)\n• Software Developer - Quantum Code Systems (2020 - 2022)"
+    lbl_edu, def_edu = "Education & Certifications:", "B.Sc. in Computer Engineering - MIT University (GPA 3.9 / 2019)"
+    lbl_skills, def_skills = "Core Competitive Skills (Separate with commas):", "Python, Streamlit, Go, React, AWS, Docker, PostgreSQL, CI/CD"
+    btn_print_text = "🚀 Launch Print Matrix or Save as PDF"
 
+name = st.sidebar.text_input(lbl_name, def_name)
+job_title = st.sidebar.text_input(lbl_job, def_job)
+email = st.sidebar.text_input(lbl_email, def_email)
+phone = st.sidebar.text_input(lbl_phone, def_phone)
+summary = st.sidebar.text_area(lbl_summary, def_summary, height=100)
+experience = st.sidebar.text_area(lbl_exp, def_exp, height=120)
+education = st.sidebar.text_area(lbl_edu, def_edu, height=80)
+skills = st.sidebar.text_input(lbl_skills, def_skills)
 
-def decode_cv(tok):
-    try:
-        if not tok or len(tok) > 20000:
-            return None
-        raw = base64.urlsafe_b64decode(tok + "=" * (-len(tok) % 4))
-        obj = json.loads(zlib.decompressobj().decompress(raw, 200000).decode("utf-8"))
-        lg, tp, h, dd = obj["l"], obj["t"], int(obj["h"]), obj["d"]
-        if lg not in T or tp not in TPLS or not 0 <= h < len(THEMES):
-            return None
-        return {"l": lg, "t": tp, "h": h, "d": {f: str(dd.get(f, ""))[:3000] for f in FIELDS}}
-    except Exception:
-        return None
+uploaded_img = st.sidebar.file_uploader("📸 ارفع صورتك الشخصية من الاستوديو:", type=["jpg", "png", "jpeg"])
 
+st.markdown(f"<h1 style='text-align:center;'>{title_main}</h1>", unsafe_allow_html=True)
+st.markdown(f"<p style='text-align:center; color:#aaa; font-size:16px; margin-bottom:25px;'>{desc_main}</p>", unsafe_allow_html=True)
+st.markdown("---")
 
-def base_url():
-    try:
-        u = st.context.url
-        return u.split("?")[0].split("#")[0] if u else None
-    except Exception:
-        return None
+st.markdown('<div class="cv-preview-card">', unsafe_allow_html=True)
 
+st.markdown(f"""
+    <div style='display: flex; flex-direction: {flex_dir}; justify-content: space-between; align-items: center; width: 100%;'>
+        <div style='text-align: {align_dir}; flex-grow: 1;'>
+            <h1 style='color: #0f172a !important; margin: 0; font-size: 36px; font-weight: 800;'>{name}</h1>
+            <p style='color: #007bff !important; font-size: 22px; font-weight: bold; margin-top: 6px; margin-bottom: 12px;'>{job_title}</p>
+            <p style='color: #475569; font-size: 15px; font-weight: 500; margin: 0;'>📧 {email} &nbsp;|&nbsp; 📱 {phone}</p>
+        </div>
+        <div style='margin-left: 20px; margin-right: 20px;'>
+""", unsafe_allow_html=True)
 
-# =====================================================================
-# حالة الجلسة
-# =====================================================================
-for lg in T:
-    for f in FIELDS:
-        st.session_state.setdefault(f"{f}_{lg}", T[lg]["demo"][f])
-st.session_state.setdefault("page", "home")
-if "lang" not in st.session_state:
-    try:
-        _al = st.context.headers.get("Accept-Language", "")
-    except Exception:
-        _al = ""
-    st.session_state.lang = "ar" if _al.lower().startswith("ar") else "en"
-st.session_state.setdefault("tpl", "glass")
-st.session_state.setdefault("th", 0)
-st.session_state.setdefault("photo", None)
-st.session_state.setdefault("photo_n", 0)
-if "view_checked" not in st.session_state:
-    st.session_state.view_checked = True
-    st.session_state.view = None
-    _v = decode_cv(st.query_params.get("cv"))
-    if _v:
-        st.session_state.view = _v
-        st.session_state.lang, st.session_state.tpl, st.session_state.th = _v["l"], _v["t"], _v["h"]
+if uploaded_img:
+    st.image(Image.open(uploaded_img), width=130)
+else:
+    st.markdown("<div style='width:120px; height:120px; border-radius:50%; background:#e2e8f0; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-weight:bold; font-size:12px;'>No Photo</div>", unsafe_allow_html=True)
 
-# ستريمليت يمسح حالة الحقول اللي مش معروضة، فبنثبتها هنا
-for _lg in T:
-    for _f in FIELDS:
-        st.session_state[f"{_f}_{_lg}"] = st.session_state[f"{_f}_{_lg}"]
-for _k in ("page", "lang", "tpl", "th"):
-    st.session_state[_k] = st.session_state[_k]
+st.markdown("""
+        </div>
+    </div>
+    <hr style='border-top: 3px solid #007bff; margin-top: 25px; margin-bottom: 25px;'>
+""", unsafe_allow_html=True)
 
-lang = st.session_state.lang
-L = T[lang]
-TH = THEMES[st.session_state.th]
+st.markdown(f"<div style='text-align: {align_dir}; color: #334155;'>", unsafe_allow_html=True)
 
+st.markdown(f"<h3 style='color:#0f172a; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;'>🎯 {'الخلاصة المهنية' if lang == 'العربية' else 'Professional Summary'}</h3>", unsafe_allow_html=True)
+st.markdown(f"<p style='font-size:16px; color:#334155;'>{summary}</p>", unsafe_allow_html=True)
 
-def go(page, tpl=None):
-    st.session_state.page = page
-    if tpl:
-        st.session_state.tpl = tpl
+st.markdown(f"<h3 style='color:#0f172a; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-top: 25px;'>💼 {'الخبرات العملية' if lang == 'العربية' else 'Work Experience'}</h3>", unsafe_allow_html=True)
+for exp in experience.split('\n'):
+    if exp.strip():
+        st.markdown(f"<p style='font-size:15px; margin-bottom: 6px;'>{exp}</p>", unsafe_allow_html=True)
 
+st.markdown(f"<h3 style='color:#0f172a; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-top: 25px;'>🎓 {'التعليم والشهادات' if lang == 'العربية' else 'Education & Certifications'}</h3>", unsafe_allow_html=True)
+st.markdown(f"<p style='font-size:15px;'>{education}</p>", unsafe_allow_html=True)
 
-def exit_view():
-    st.session_state.view = None
-    st.query_params.clear()
-    st.session_state.page = "builder"
-
-
-def toggle_lang():
-    st.session_state.lang = "en" if st.session_state.lang == "ar" else "ar"
-
-
-def remove_photo():
-    st.session_state.photo = None
-    st.session_state.photo_n += 1
-
-
-def md(s):
-    st.markdown(" ".join(s.split()), unsafe_allow_html=True)
-
-
-# =====================================================================
-# CSS الخاص بالسيرة (مشترك بين المعاينة وملف التحميل)
-# =====================================================================
-CV_CSS = """
-.cvx{--ff:inherit;font-family:var(--ff);line-height:1.75;border-radius:22px;overflow:hidden;color:var(--tx);padding:36px;text-align:start}
-.cvx *{box-sizing:border-box}
-.cvx h2,.cvx h3,.cvx h4,.cvx p{margin:0;padding:0}
-.cvx.dark{--bg:rgba(255,255,255,.06);--tx:#eef2ff;--mu:#b9c3de;--cd:rgba(255,255,255,.07);--bd:rgba(255,255,255,.14);--hd:#fff;--ac:var(--a)}
-.cvx.paper{--bg:#fff;--tx:#1f2430;--mu:#5b6475;--cd:#f3f5fa;--bd:#e3e7f0;--hd:#111827;--ac:var(--b)}
-.cvx .hd{display:flex;gap:26px;align-items:center;flex-wrap:wrap;padding-bottom:22px;border-bottom:1px solid var(--bd)}
-.cvx .av{width:140px;height:140px;border-radius:50%;object-fit:cover;flex:none}
-.cvx img.av{padding:4px;background:linear-gradient(135deg,var(--a),var(--b))}
-.cvx .av.ph{display:flex;align-items:center;justify-content:center;font-size:2.8rem;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--a),var(--b))}
-.cvx h2{font-size:2.1rem;font-weight:800;color:var(--hd);line-height:1.25}
-.cvx h3{font-size:1.15rem;font-weight:600;color:var(--ac);margin:4px 0 10px}
-.cvx .ct{display:flex;flex-wrap:wrap;gap:6px 18px;color:var(--mu);font-size:.93rem}
-.cvx .lk{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:6px;font-size:.9rem}
-.cvx .lk a{color:var(--ac);text-decoration:none;border-bottom:1px dotted currentColor}
-.cvx .sc{margin-top:26px}
-.cvx .sc h4{font-size:1.1rem;font-weight:700;color:var(--hd);padding-bottom:7px;margin-bottom:12px;border-bottom:2px solid color-mix(in srgb,var(--ac) 65%,transparent)}
-.cvx .sc p{color:var(--tx)}
-.cvx .it{background:var(--cd);border-radius:12px;padding:10px 16px;margin-bottom:8px}
-.cvx .ch{display:inline-block;margin:3px;padding:5px 14px;border-radius:999px;font-weight:600;font-size:.88rem;color:var(--hd);background:color-mix(in srgb,var(--a) 18%,transparent);border:1px solid color-mix(in srgb,var(--ac) 50%,transparent)}
-.t-glass{background:var(--bg);backdrop-filter:blur(14px);border:1px solid var(--bd)}
-.t-glass.dark{box-shadow:0 0 60px color-mix(in srgb,var(--a) 22%,transparent)}
-.t-glass.dark .av{box-shadow:0 0 28px color-mix(in srgb,var(--a) 70%,transparent)}
-.t-glass .it{border-inline-start:3px solid var(--a)}
-.t-classic{background:#fff;padding:44px;border-radius:8px;border-top:8px solid var(--b)}
-.t-classic .hd{border-bottom:2px solid var(--hd)}
-.t-classic .av{border-radius:12px}
-.t-classic .it{background:none;border-radius:0;padding:2px 0;margin-bottom:4px}
-.t-classic .it::before{content:"▪ ";color:var(--ac)}
-.t-classic .ch{background:none;border-radius:6px}
-.t-side{display:grid;grid-template-columns:minmax(0,34fr) minmax(0,66fr);padding:0;background:#fff}
-.t-side aside{background:linear-gradient(160deg,color-mix(in srgb,var(--b) 75%,#111),color-mix(in srgb,var(--b) 45%,#111));color:#fff;padding:32px 22px}
-.t-side aside .av{width:130px;height:130px;margin:0 auto 18px;display:flex}
-.t-side aside .sc h4{color:#fff;border-color:rgba(255,255,255,.4);font-size:1rem}
-.t-side aside .ct{flex-direction:column;color:#f4f4f4}
-.t-side aside .lk a{color:#fff}
-.t-side aside .ch{color:#fff;background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.35)}
-.t-side main{padding:34px 30px;display:block}
-.t-side main .id h2{margin-bottom:2px}
-@media(max-width:700px){.cvx{padding:22px}.t-classic{padding:24px}.t-side{grid-template-columns:1fr}}
-@media print{.cvx{box-shadow:none!important}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
-"""
-
-
-def lines(text):
-    return [x.strip().lstrip("•-–▪ ").strip() for x in text.splitlines() if x.strip()]
-
-
-def csv(text):
-    return [x.strip() for x in text.replace("،", ",").split(",") if x.strip()]
-
-
-def cv_html(d, tpl, theme, photo=None, paper=False):
-    e = html.escape
-    name = d["name"].strip()
-    initials = "".join(w[0] for w in name.split()[:2]).upper() or "CV"
-    if photo:
-        av = f'<img class="av" alt="" src="data:{photo[0]};base64,{base64.b64encode(photo[1]).decode()}"/>'
-    else:
-        av = f'<div class="av ph">{e(initials)}</div>'
-
-    ct = "".join(f"<span>{i} {e(v.strip())}</span>"
-                 for i, v in (("✉️", d["email"]), ("📱", d["phone"]), ("📍", d["city"])) if v.strip())
-    lk_items = []
-    for u in lines(d["links"]):
-        href = u if u.startswith("http") else "https://" + u
-        shown = u.replace("https://", "").replace("http://", "").rstrip("/")
-        lk_items.append(f'<a href="{e(href, quote=True)}" target="_blank" rel="noopener">{e(shown)}</a>')
-    lk = f'<div class="lk">{"".join(lk_items)}</div>' if lk_items else ""
-
-    def sec(icon, key, body):
-        return f'<div class="sc"><h4>{icon} {e(L[key])}</h4>{body}</div>' if body else ""
-
-    def its(arr):
-        return "".join(f'<div class="it">{e(x)}</div>' for x in arr)
-
-    def chips(arr):
-        return "".join(f'<span class="ch">{e(x)}</span>' for x in arr)
-
-    summary = f"<p>{e(d['summary'].strip())}</p>" if d["summary"].strip() else ""
-    s_sum = sec("🎯", "h_summary", summary)
-    s_exp = sec("💼", "h_exp", its(lines(d["exp"])))
-    s_edu = sec("🎓", "h_edu", its(lines(d["edu"])))
-    s_pro = sec("🚀", "h_projects", its(lines(d["projects"])))
-    s_cou = sec("📜", "h_courses", its(lines(d["courses"])))
-    s_ski = sec("⚡", "h_skills", chips(csv(d["skills"])))
-    s_lan = sec("🌍", "h_langs", chips(csv(d["langs"])))
-
-    cls = "paper" if (paper or tpl != "glass") else "dark"
-    ff = L["ffs"] if tpl == "classic" else L["ff"]
-    style = f'--a:{theme["a"]};--b:{theme["b"]};--ff:{ff};'
-    ident = f'<div class="id"><h2>{e(name)}</h2><h3>{e(d["title"].strip())}</h3></div>'
-
-    if tpl == "side":
-        body = (f'<aside>{av}<div class="sc"><div class="ct">{ct}</div>{lk}</div>{s_ski}{s_lan}</aside>'
-                f'<main>{ident}{s_sum}{s_exp}{s_edu}{s_pro}{s_cou}</main>')
-    else:
-        head = f'<div class="hd">{av}<div class="id"><h2>{e(name)}</h2><h3>{e(d["title"].strip())}</h3><div class="ct">{ct}</div>{lk}</div></div>'
-        body = f'{head}{s_sum}{s_exp}{s_edu}{s_pro}{s_cou}{s_ski}{s_lan}'
-    return f'<div class="cvx t-{tpl} {cls}" dir="{L["dir"]}" style="{style}">{body}</div>'
-
-
-def download_doc(d, tpl, theme, photo):
-    body = cv_html(d, tpl, theme, photo, paper=True)
-    return f"""<!DOCTYPE html><html lang="{lang}" dir="{L['dir']}"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{html.escape(d['name'])} - {'Resume' if lang == 'en' else 'CV'}</title>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;600;800&family=Source+Serif+4:wght@400;600;700&display=swap" rel="stylesheet">
-<style>body{{margin:0;padding:24px;background:#fff}}.wrap{{max-width:860px;margin:auto}}{CV_CSS}
-@page{{size:{'letter' if lang == 'en' else 'A4'};margin:.5in}}@media print{{body{{padding:0}}}}</style></head><body><div class="wrap">{body}</div></body></html>"""
-
-
-def current_data():
-    return {f: st.session_state[f"{f}_{lang}"] for f in FIELDS}
-
-
-# =====================================================================
-# CSS الموقع
-# =====================================================================
-A, B, BG = TH["a"], TH["b"], TH["bg"]
-align = "right" if L["dir"] == "rtl" else "left"
-SITE_CSS = f"""
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;600;800&family=Source+Serif+4:wght@400;600;700&display=swap');
-:root{{--a:{A};--b:{B};}}
-.stApp{{background:radial-gradient(circle at 12% 8%,color-mix(in srgb,{B} 30%,transparent),transparent 42%),radial-gradient(circle at 88% 92%,color-mix(in srgb,{A} 20%,transparent),transparent 42%),{BG};color:#e8ecfa}}
-.stApp,.stApp p,.stApp li,.stApp label,.stApp input,.stApp textarea,.stApp button,.stApp summary{{font-family:{L['ff']}}}
-.stApp [data-testid="stIconMaterial"],.stApp [class*="material-icons"],.stApp [class*="material-symbols"]{{font-family:'Material Symbols Rounded','Material Icons'!important;font-style:normal;font-weight:400;letter-spacing:normal;text-transform:none;white-space:nowrap;direction:ltr;-webkit-font-feature-settings:'liga';font-feature-settings:'liga'}}
-.stApp [data-testid="stWidgetLabel"] *,.stApp label p,.stApp li,.stApp .stMarkdown p{{color:#d5dcf2}}
-.stApp [data-testid="stAppViewContainer"],.stApp [data-testid="stMain"]{{direction:{L['dir']}}}
-header[data-testid="stHeader"],#MainMenu,footer,[data-testid="stSidebar"],[data-testid="collapsedControl"],[data-testid="stSidebarCollapsedControl"]{{display:none!important}}
-.block-container{{max-width:1180px;padding-top:1.2rem;padding-bottom:2rem}}
-.stTextInput input,.stTextArea textarea{{background:rgba(255,255,255,.06)!important;color:#fff!important;border:1px solid rgba(255,255,255,.18)!important;border-radius:12px!important;text-align:start}}
-.stSelectbox div[data-baseweb="select"]>div{{background:rgba(255,255,255,.06)!important;border:1px solid rgba(255,255,255,.18)!important;border-radius:12px!important}}
-.stSelectbox div[data-baseweb="select"] *{{color:#fff!important}}
-[data-testid="stExpander"]{{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12)!important;border-radius:16px;margin-bottom:12px}}
-[data-testid="stExpander"] summary,[data-testid="stExpander"] summary *{{color:#fff!important;font-weight:700}}
-[data-testid="stFileUploader"] section{{background:rgba(255,255,255,.05);border:1px dashed rgba(255,255,255,.25);border-radius:14px}}
-[data-testid="stFileUploader"] section *{{color:#d5dcf2!important}}
-.stButton button{{background:rgba(255,255,255,.07)!important;color:#e8ecfa!important;border:1px solid rgba(255,255,255,.18)!important;border-radius:14px!important;font-weight:600;transition:transform .2s,box-shadow .2s}}
-.stButton button[kind="primary"],.stButton button[data-testid="stBaseButton-primary"],.stDownloadButton button,.stLinkButton a{{background:linear-gradient(135deg,{A},{B})!important;color:#fff!important;border:0!important;font-weight:700;padding:.65rem 1.2rem;border-radius:14px!important}}
-.stButton button *,.stDownloadButton button *,.stLinkButton a *{{color:inherit!important}}
-.stButton button:hover,.stDownloadButton button:hover,.stLinkButton a:hover{{transform:translateY(-2px);box-shadow:0 8px 28px color-mix(in srgb,{B} 55%,transparent)}}
-.stRadio [role="radiogroup"]{{gap:6px;flex-wrap:wrap}}
-.stRadio label[data-baseweb="radio"]{{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:6px 16px;margin:0;cursor:pointer}}
-.stRadio label[data-baseweb="radio"]>div:first-child{{display:none}}
-.stRadio label[data-baseweb="radio"]:has(input:checked){{background:linear-gradient(135deg,{A},{B});border-color:transparent}}
-.stRadio label[data-baseweb="radio"]:has(input:checked) *{{color:#fff!important;font-weight:700}}
-.brand{{font-size:1.5rem;font-weight:800;background:linear-gradient(90deg,{A},{B});-webkit-background-clip:text;-webkit-text-fill-color:transparent;padding-top:4px}}
-.hero{{text-align:center;padding:56px 10px 18px}}
-.hero h1{{font-size:clamp(2rem,5vw,3.6rem);font-weight:800;line-height:1.25;margin:0 0 14px;background:linear-gradient(90deg,{A},{B},{A});background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:shine 5s linear infinite}}
-@keyframes shine{{to{{background-position:200% center}}}}
-@media(prefers-reduced-motion:reduce){{.hero h1{{animation:none}}}}
-.hero p{{max-width:640px;margin:0 auto;color:#aab4cf;font-size:1.1rem;line-height:1.9}}
-.ptitle{{font-size:2rem;font-weight:800;color:#fff;margin:6px 0 4px}}
-.psub{{color:#aab4cf;margin-bottom:18px}}
-.h2s{{font-size:1.6rem;font-weight:800;color:#fff;text-align:center;margin:46px 0 20px}}
-.grid3{{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}}
-.fc{{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:22px;backdrop-filter:blur(10px)}}
-.fc .ic{{font-size:1.8rem}}
-.fc h5{{font-size:1.05rem;font-weight:700;color:#fff;margin:8px 0 6px}}
-.fc p,.fc a{{color:#b9c3de;font-size:.95rem;line-height:1.8;margin:0;text-decoration:none;word-break:break-word}}
-.fc a:hover{{color:{A}}}
-.stp{{display:flex;gap:14px;align-items:flex-start}}
-.stp .n{{flex:none;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;background:linear-gradient(135deg,{A},{B})}}
-.thumb{{height:440px;overflow:hidden;border-radius:18px;margin-bottom:12px;pointer-events:none;background:rgba(255,255,255,.03)}}
-.thumb .cvx{{zoom:.4;width:250%}}
-.tname{{font-weight:800;color:#fff;font-size:1.1rem}}
-.tdesc{{color:#b9c3de;font-size:.92rem;min-height:70px}}
-.foot{{text-align:center;color:#8c97b8;font-size:.88rem;border-top:1px solid rgba(255,255,255,.1);margin-top:50px;padding-top:20px;line-height:1.9}}
-.foot b{{color:#fff}}
-{CV_CSS}
-"""
-md(f"<style>{SITE_CSS}</style>")
-
-# =====================================================================
-# الهيدر: الشعار + التنقل + اللغة
-# =====================================================================
-if st.session_state.view:
-    _v = st.session_state.view
-    md('<div class="brand" style="text-align:center">✨ Lumina CV</div>')
-    md(f'<div style="max-width:880px;margin:18px auto">{cv_html(_v["d"], _v["t"], THEMES[_v["h"]])}</div>')
-    _, _mid, _ = st.columns([1, 2, 1])
-    with _mid:
-        st.download_button("⬇️ " + L["download"], type="primary", use_container_width=True,
-                           data=download_doc(_v["d"], _v["t"], THEMES[_v["h"]], None).encode("utf-8"),
-                           file_name=f"{'Resume' if lang == 'en' else 'CV'}_{_v['d']['name'].strip().replace(' ', '_') or 'CV'}.html",
-                           mime="text/html")
-    md(f'<div class="foot"><b>✨ Lumina CV</b><br>{html.escape(L["view_made"])}</div>')
-    _, _mid2, _ = st.columns([1, 2, 1])
-    _mid2.button(L["view_cta"], on_click=exit_view, type="primary", use_container_width=True, key="view_cta")
-    st.stop()
-
-page = st.session_state.page
-h1, h2, h3 = st.columns([2, 8, 1.6], vertical_alignment="center")
-with h1:
-    md('<div class="brand">✨ Lumina CV</div>')
-with h2:
-    for _c, _p in zip(st.columns(len(PAGES)), PAGES):
-        _c.button(L["nav"][PAGES.index(_p)], key=f"nav_{_p}", on_click=go, args=(_p,),
-                  type="primary" if page == _p else "secondary", use_container_width=True)
-with h3:
-    st.button("English" if lang == "ar" else "العربية", key="lang_btn", on_click=toggle_lang, use_container_width=True)
-demo = L["demo"]
-photo = st.session_state.photo
-
-# =====================================================================
-# الرئيسية
-# =====================================================================
-if page == "home":
-    md(f'<div class="hero"><h1>✨ {html.escape(L["hero_title"])}</h1><p>{html.escape(L["hero_sub"])}</p></div>')
-    _, c1, c2, _ = st.columns([3, 2, 2, 3])
-    c1.button(L["cta_start"], on_click=go, args=("builder",), use_container_width=True, key="h_start", type="primary")
-    c2.button(L["cta_tpl"], on_click=go, args=("templates",), use_container_width=True, key="h_tpl", type="primary")
-
-    md(f'<div class="h2s">{html.escape(L["prev_title"])}</div>')
-    md(f'<div style="max-width:880px;margin:auto">{cv_html(demo, "glass", TH)}</div>')
-
-    md(f'<div class="h2s">{html.escape(L["feat_title"])}</div>')
-    cards = "".join(f'<div class="fc"><div class="ic">{i}</div><h5>{html.escape(t)}</h5><p>{html.escape(x)}</p></div>'
-                    for i, t, x in L["features"])
-    md(f'<div class="grid3">{cards}</div>')
-
-    md(f'<div class="h2s">{html.escape(L["steps_title"])}</div>')
-    steps = "".join(f'<div class="fc stp"><div class="n">{n}</div><div><h5 style="margin-top:0">{html.escape(t)}</h5><p>{html.escape(x)}</p></div></div>'
-                    for n, (t, x) in enumerate(L["steps"], 1))
-    md(f'<div class="grid3">{steps}</div>')
-
-# =====================================================================
-# المنشئ
-# =====================================================================
-elif page == "builder":
-    md(f'<div class="ptitle">{html.escape(L["b_title"])}</div><div class="psub">{html.escape(L["b_sub"])}</div>')
-    form, prev = st.columns([5, 6], gap="large")
-
-    with form:
-        with st.expander("🎨 " + L["s_design"], expanded=True):
-            st.selectbox(L["tpl_label"], TPLS, key="tpl", format_func=lambda x: L["tpl_names"][x])
-            st.selectbox(L["theme_label"], range(len(THEMES)), key="th", format_func=lambda i: L["theme_names"][i])
-        with st.expander("📝 " + L["s_personal"], expanded=True):
-            st.text_input(L["f_name"], key=f"name_{lang}")
-            st.text_input(L["f_title"], key=f"title_{lang}")
-            st.text_input(L["f_email"], key=f"email_{lang}")
-            st.text_input(L["f_phone"], key=f"phone_{lang}")
-            st.text_input(L["f_city"], key=f"city_{lang}")
-            st.text_area(L["f_links"], key=f"links_{lang}", height=80)
-            st.caption(L["photo_hint"])
-            up = st.file_uploader(L["photo"], type=["png", "jpg", "jpeg", "webp"], key=f"pu_{st.session_state.photo_n}")
-            if up is not None:
-                st.session_state.photo = (up.type or "image/png", up.getvalue())
-                photo = st.session_state.photo
-            if st.session_state.photo:
-                st.caption("✅ " + L["photo_ok"])
-                st.button(L["photo_rm"], on_click=remove_photo, key="rm_photo")
-        with st.expander("💼 " + L["s_content"], expanded=True):
-            st.text_area(L["f_summary"], key=f"summary_{lang}", height=120)
-            st.text_area(L["f_exp"], key=f"exp_{lang}", height=130)
-            st.text_area(L["f_edu"], key=f"edu_{lang}", height=90)
-            st.text_input(L["f_skills"], key=f"skills_{lang}")
-        with st.expander("🧩 " + L["s_extra"], expanded=False):
-            st.text_area(L["f_projects"], key=f"projects_{lang}", height=100)
-            st.text_area(L["f_courses"], key=f"courses_{lang}", height=100)
-            st.text_input(L["f_langs"], key=f"langs_{lang}")
-
-    with prev:
-        d = current_data()
-        st.download_button("⬇️ " + L["download"], type="primary",
-                           data=download_doc(d, st.session_state.tpl, TH, photo).encode("utf-8"),
-                           file_name=f"{'Resume' if lang == 'en' else 'CV'}_{d['name'].strip().replace(' ', '_') or 'CV'}.html",
-                           mime="text/html", use_container_width=True)
-        st.caption(L["tip"])
-        if st.button("🔗 " + L["share_btn"], key="share_btn", use_container_width=True):
-            st.session_state.share_tok = encode_cv(d, st.session_state.tpl, st.session_state.th, lang)
-            st.query_params["cv"] = st.session_state.share_tok
-        _tok = st.session_state.get("share_tok")
-        if _tok:
-            _b = base_url()
-            if len(_tok) > 6000:
-                st.warning(L["share_long"])
-            elif _b:
-                st.caption(L["share_ready"])
-                st.code(f"{_b}?cv={_tok}", language=None)
-            else:
-                st.info(L["share_addr"])
-            st.caption(L["share_note"])
-        md(cv_html(d, st.session_state.tpl, TH, photo))
-
-# =====================================================================
-# القوالب
-# =====================================================================
-elif page == "templates":
-    md(f'<div class="ptitle">{html.escape(L["t_title"])}</div><div class="psub">{html.escape(L["t_sub"])}</div>')
-    cols = st.columns(3, gap="medium")
-    for col, tp in zip(cols, TPLS):
-        with col:
-            md(f'<div class="thumb">{cv_html(demo, tp, TH)}</div>'
-               f'<div class="tname">{html.escape(L["tpl_names"][tp])}</div>'
-               f'<div class="tdesc">{html.escape(L["tpl_desc"][tp])}</div>')
-            if st.session_state.tpl == tp:
-                st.caption("✅ " + L["t_cur"])
-            st.button(L["t_use"], on_click=go, args=("builder", tp), key=f"use_{tp}", use_container_width=True, type="primary")
-
-# =====================================================================
-# كيف يعمل + الأسئلة الشائعة + الخصوصية والشروط
-# =====================================================================
-elif page == "how":
-    md(f'<div class="ptitle">{html.escape(L["how_title"])}</div>')
-    steps = "".join(f'<div class="fc stp"><div class="n">{n}</div><div><h5 style="margin-top:0">{html.escape(t)}</h5><p>{html.escape(x)}</p></div></div>'
-                    for n, (t, x) in enumerate(L["steps"], 1))
-    md(f'<div class="grid3" style="margin-bottom:10px">{steps}</div>')
-    md(f'<div class="h2s">{html.escape(L["faq_title"])}</div>')
-    for q, a in L["faqs"]:
-        with st.expander(q):
-            st.write(a)
-    with st.expander("🔒 " + L["priv_title"]):
-        st.write(L["priv_text"])
-    with st.expander("📄 " + L["terms_title"]):
-        st.write(L["terms_text"])
-
-# =====================================================================
-# تواصل معنا
-# =====================================================================
-elif page == "contact":
-    md(f'<div class="ptitle">{html.escape(L["c_title"])}</div><div class="psub">{html.escape(L["c_sub"])}</div>')
-    e = html.escape
-    cards = []
-    if CONTACT["email"]:
-        cards.append(f'<div class="fc"><div class="ic">✉️</div><h5>{e(L["c_email"])}</h5><a href="mailto:{e(CONTACT["email"], quote=True)}">{e(CONTACT["email"])}</a></div>')
-    if CONTACT["phone"]:
-        cards.append(f'<div class="fc"><div class="ic">📱</div><h5>{e(L["c_phone"])}</h5><a href="tel:{e(CONTACT["phone"].replace(" ", ""), quote=True)}" dir="ltr">{e(CONTACT["phone"])}</a></div>')
-    if CONTACT["loc"][lang]:
-        cards.append(f'<div class="fc"><div class="ic">📍</div><h5>{e(L["c_loc"])}</h5><p>{e(CONTACT["loc"][lang])}</p></div>')
-    socials = " &nbsp;•&nbsp; ".join(
-        f'<a href="{e(u, quote=True)}" target="_blank" rel="noopener">{n}</a>'
-        for n, u in (("LinkedIn", CONTACT["linkedin"]), ("GitHub", CONTACT["github"]), ("X", CONTACT["x"])) if u)
-    if socials:
-        cards.append(f'<div class="fc"><div class="ic">🌐</div><h5>{e(L["c_social"])}</h5><p>{socials}</p></div>')
-    if cards:
-        md(f'<div class="grid3">{"".join(cards)}</div>')
-    else:
-        st.info(L["c_empty"])
-    if CONTACT["email"]:
-        md(f'<div class="h2s">{e(L["c_form"])}</div>')
-        _, mid, _ = st.columns([1, 3, 1])
-        with mid:
-            cn = st.text_input(L["c_name"], key="cf_name")
-            cm = st.text_input(L["c_mail"], key="cf_mail")
-            cg = st.text_area(L["c_msg"], key="cf_msg", height=140)
-            body = f"{cg}\n\n{cn}\n{cm}"
-            st.link_button(L["c_send"], f"mailto:{CONTACT['email']}?subject={quote(L['c_subject'])}&body={quote(body)}",
-                           use_container_width=True, disabled=not cg.strip(), type="primary")
-            st.caption(L["c_hint"])
-
-# =====================================================================
-# الفوتر
-# =====================================================================
-md(f'<div class="foot"><b>✨ Lumina CV</b><br>© 2026 &nbsp;|&nbsp; {html.escape(L["footer"])}<br>{html.escape(L["footer2"])}</div>')
+st.markdown(f"<h3 style='color:#0f172a; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-top: 25px;'>🛠️ {'المهارات والقدرات الأساسية' if lang == 'العربية' else 'Core Expertise & Skills'}</h3>", unsafe_allow_html=True)
+skill_tags = "".join([f"<span style='background:#f1f5f9; color:#1e293b; padding:6px 14px; margin:5px; border-radius:6px; display:inline-block; font-weight:600; font-size:14px; border: 1px solid #cbd5e1;'>{s.strip()}</span>" for s in skills.split(',') if s.strip()])
