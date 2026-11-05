@@ -469,6 +469,10 @@ header[data-testid="stHeader"],#MainMenu,footer,[data-testid="stSidebar"],[data-
 .st-key-topnav .stButton button{{min-height:2.1rem;padding:.3rem .6rem;font-size:.85rem}}
 .block-container{{padding-left:1rem;padding-right:1rem}}
 }}
+.st-key-viewtop{{direction:ltr}}
+.st-key-viewtop [data-testid="stHorizontalBlock"]{{flex-wrap:nowrap!important;gap:10px!important}}
+.st-key-viewtop [data-testid="stColumn"]{{min-width:0!important}}
+.st-key-viewtop .stButton button{{padding:.4rem .6rem;font-size:.88rem;white-space:nowrap}}
 .stRadio [role="radiogroup"]{{gap:6px;flex-wrap:wrap}}
 .stRadio label[data-baseweb="radio"]{{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:6px 16px;margin:0;cursor:pointer}}
 .stRadio label[data-baseweb="radio"]>div:first-child{{display:none}}
@@ -506,7 +510,10 @@ md(f"<style>{SITE_CSS}</style>")
 # =====================================================================
 if st.session_state.view:
     _v = st.session_state.view
-    md('<div class="brand" style="text-align:center">✨ Lumina CV</div>')
+    with st.container(key="viewtop"):
+        _bc, _cc = st.columns([3, 2], vertical_alignment="center")
+        _bc.markdown('<div class="brand">✨ Lumina CV</div>', unsafe_allow_html=True)
+        _cc.button(L["view_cta"], on_click=exit_view, type="primary", use_container_width=True, key="view_cta")
     md(f'<div style="max-width:880px;margin:18px auto">{cv_html(_v["d"], _v["t"], THEMES[_v["h"]])}</div>')
     _, _mid, _ = st.columns([1, 2, 1])
     with _mid:
@@ -515,8 +522,6 @@ if st.session_state.view:
                            file_name=f"{'Resume' if lang == 'en' else 'CV'}_{_v['d']['name'].strip().replace(' ', '_') or 'CV'}.html",
                            mime="text/html")
     md(f'<div class="foot"><b>✨ Lumina CV</b><br>{html.escape(L["view_made"])}</div>')
-    _, _mid2, _ = st.columns([1, 2, 1])
-    _mid2.button(L["view_cta"], on_click=exit_view, type="primary", use_container_width=True, key="view_cta")
     st.stop()
 
 page = st.session_state.page
