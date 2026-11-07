@@ -23,6 +23,11 @@ CONTACT = {
 # رابط الإعلان (اتركه فاضي "" لو عاوز تشيله). بيظهر في الفوتر فقط وبعلامة واضحة إنه إعلان.
 AD_LINK = "https://uplcm.com/4/11097841"
 
+# بانر إعلاني ثابت (صورة + رابط) بياخدهم من برنامج الإحالة/الإعلانات. الفاضي لا يظهر.
+# مثال: AD_BANNER = {"img": "https://.../banner-300x250.png", "url": "https://رابطك-الخاص", "alt": "Advertisement", "width": 300}
+# ملاحظة أمان: بندعم صورة + رابط فقط. ماتحطش كود سكريبت من شبكة إعلانات هنا، لأنه ممكن يقرا بيانات الزائر.
+AD_BANNER = {"img": "", "url": "", "alt": "Advertisement", "width": 300}
+
 # روابط الإحالة (Affiliate): أضف روابطك الحقيقية هنا بعد ما تسجل في برامج الإحالة. القائمة الفاضية = لا يظهر قسم الموارد.
 # مثال: {"title": {"ar": "اسم الخدمة", "en": "Service name"}, "desc": {"ar": "وصف قصير", "en": "Short description"}, "url": "https://..."}
 AFFILIATES = []
@@ -114,6 +119,34 @@ T = {
         "c_subject": "رسالة من موقع Lumina CV",
         "c_empty": "بيانات التواصل ستتوفر قريبًا.",
         "ad_text": "رابط إعلاني: ادعم الموقع المجاني بزيارة راعينا",
+        "ad_label": "إعلان",
+        "view_edit": "✏️ تعديل نسخة من هذه السيرة",
+        "view_note": "المحتوى من صاحب السيرة ولا يتحقق منه Lumina.",
+        "f_about": "عن Lumina", "f_priv": "الخصوصية", "f_terms": "الشروط",
+        "pg_updated": "آخر تحديث: نوفمبر 2026",
+        "about_title": "عن Lumina CV",
+        "about_secs": [
+            ("ما هو Lumina CV", "أداة مجانية لصناعة سيرة ذاتية أنيقة بالعربية والإنجليزية: اختر القالب واللون، أدخل بياناتك، ثم احفظها PDF أو شاركها برابط."),
+            ("لمن صُمم", "للخريجين وطالبي العمل الذين يريدون سيرة واضحة وسريعة دون تعقيد أو حساب. اختر القالب الكلاسيكي إن كانت الجهة تستخدم أنظمة فرز السير الذاتية."),
+            ("مشروع مستقل", "Lumina CV مشروع مستقل صغير يتطور بحسب ملاحظات المستخدمين. اقتراحاتك مرحَّب بها عبر صفحة التواصل."),
+        ],
+        "privp_title": "سياسة الخصوصية",
+        "privp_secs": [
+            ("ما الذي تدخله", "البيانات التي تكتبها (الاسم ووسائل التواصل والخبرات وغيرها) تُستخدم فقط لبناء سيرتك داخل جلستك. لا نخزنها في قاعدة بيانات ولا نطلب منك إنشاء حساب."),
+            ("روابط المشاركة", "عند إنشاء رابط للمشاركة تُضمَّن بيانات سيرتك داخل الرابط نفسه، ولا تُضاف صورتك الشخصية. أي شخص معه الرابط يستطيع قراءة ما فيه، فلا تشاركه إلا مع من تريد."),
+            ("الملفات التي تحمّلها", "تُنشأ ملفات HTML وPDF من بيانات جلستك لحظة الطلب، ولا نحتفظ بنسخة منها."),
+            ("أطراف خارجية", "يحمّل الموقع الخطوط من Google Fonts، ويُستضاف على Streamlit Community Cloud الذي قد يحتفظ بسجلات تقنية (مثل عنوان IP ونوع الجهاز) وفق سياسته الخاصة. الروابط الإعلانية وروابط الإحالة تنقلك إلى مواقع أخرى لها سياساتها. لا يحمّل الموقع أي سكربتات إعلانية."),
+            ("ملفات تعريف الارتباط", "لا نضبط ملفات تعريف ارتباط للإعلانات أو التتبع. قد يستخدم Streamlit تقنيات جلسة لازمة لتشغيل التطبيق، وقد تضبط المواقع التي تزورها عبر الروابط الإعلانية ملفاتها الخاصة."),
+            ("تواصل معنا", "لأي استفسار عن الخصوصية راسلنا على {email}."),
+        ],
+        "termsp_title": "شروط الاستخدام",
+        "termsp_secs": [
+            ("الخدمة", "Lumina CV أداة مجانية لإنشاء السير الذاتية، وتُقدَّم كما هي دون ضمانات من أي نوع، وقد تتغير أو تتوقف في أي وقت."),
+            ("مسؤوليتك", "أنت المسؤول عن صحة المعلومات التي تضعها في سيرتك وعن استخدامها. لا نضمن حصولك على وظيفة أو قبولك لدى أي جهة."),
+            ("الاستخدام المقبول", "لا تستخدم الموقع لنشر معلومات تخص غيرك دون إذنه أو لأي غرض غير قانوني."),
+            ("الروابط والإعلانات", "قد يحتوي الموقع على روابط إعلانية أو روابط إحالة نحصل منها على عمولة دون تكلفة إضافية عليك، وتكون موسومة بوضوح. لسنا مسؤولين عن محتوى المواقع الخارجية."),
+            ("التعديلات", "قد نحدّث هذه الشروط من وقت لآخر، واستمرارك في الاستخدام يعني موافقتك على النسخة المحدثة."),
+        ],
         "dl_pdf": "تحميل PDF", "dl_html": "تحميل ملف HTML", "pdf_hint": "ستفتح نافذة الطباعة: اختر «حفظ كـ PDF» ثم احفظ الملف.",
         "support_line": "أعجبتك الأداة؟ ادعمنا برابط إعلاني (اختياري)",
         "res_title": "موارد مفيدة في رحلة البحث عن عمل",
@@ -205,6 +238,34 @@ T = {
         "c_subject": "Message from Lumina CV",
         "c_empty": "Contact details are coming soon.",
         "ad_text": "Sponsored link: support this free site by visiting our sponsor",
+        "ad_label": "ADVERTISEMENT",
+        "view_edit": "✏️ Edit a copy of this resume",
+        "view_note": "Content is provided by the resume owner and is not verified by Lumina.",
+        "f_about": "About Lumina", "f_priv": "Privacy", "f_terms": "Terms",
+        "pg_updated": "Last updated: November 2026",
+        "about_title": "About Lumina CV",
+        "about_secs": [
+            ("What is Lumina CV", "A free tool for building a clean resume in Arabic or English: pick a template and color, enter your details, then save it as a PDF or share it with a link."),
+            ("Who it is for", "Graduates and job seekers who want a clear, fast resume without complexity or an account. Choose the Classic template if the employer uses applicant tracking systems."),
+            ("An independent project", "Lumina CV is a small independent project that improves with user feedback. Suggestions are welcome through the Contact page."),
+        ],
+        "privp_title": "Privacy Policy",
+        "privp_secs": [
+            ("What you enter", "The details you type (name, contact info, experience and so on) are used only to build your resume inside your session. We do not store them in a database and we do not ask you to create an account."),
+            ("Share links", "When you create a shareable link, your resume data is encoded inside the link itself, and your profile photo is not included. Anyone with the link can read it, so share it only with people you choose."),
+            ("Files you download", "HTML and PDF files are generated from your session data at the moment you ask, and we do not keep a copy."),
+            ("Third parties", "The site loads fonts from Google Fonts and is hosted on Streamlit Community Cloud, which may keep technical logs (such as IP address and device type) under its own policy. Sponsored and affiliate links take you to other sites with their own policies. The site does not load any advertising scripts."),
+            ("Cookies", "We do not set advertising or tracking cookies. Streamlit may use session technology needed to run the app, and sites you visit through sponsored links may set their own cookies."),
+            ("Contact", "For any privacy question, write to us at {email}."),
+        ],
+        "termsp_title": "Terms of Use",
+        "termsp_secs": [
+            ("The service", "Lumina CV is a free resume tool provided as is, without warranties of any kind, and it may change or stop at any time."),
+            ("Your responsibility", "You are responsible for the accuracy of the information in your resume and how you use it. We do not guarantee that you will get a job or be accepted by any employer."),
+            ("Acceptable use", "Do not use the site to publish information about other people without their permission, or for any unlawful purpose."),
+            ("Links and advertising", "The site may contain sponsored or affiliate links that earn us a commission at no extra cost to you, and they are clearly labeled. We are not responsible for the content of external sites."),
+            ("Changes", "We may update these terms from time to time, and continuing to use the site means you accept the updated version."),
+        ],
         "dl_pdf": "Download PDF", "dl_html": "Download HTML file", "pdf_hint": "A print window opens: choose \"Save as PDF\" and save the file.",
         "support_line": "Liked the tool? Support us with a sponsored link (optional)",
         "res_title": "Helpful resources for your job search",
@@ -328,6 +389,18 @@ def exit_view():
     st.session_state.page = "builder"
 
 
+def edit_copy():
+    v = st.session_state.view
+    if v:
+        for f in FIELDS:
+            st.session_state[f"{f}_{v['l']}"] = v["d"][f]
+        st.session_state.lang, st.session_state.tpl, st.session_state.th = v["l"], v["t"], v["h"]
+    st.session_state.view_dismissed = st.query_params.get("cv")
+    st.session_state.view = None
+    st.query_params.clear()
+    st.session_state.page = "builder"
+
+
 def toggle_lang():
     st.session_state.lang = "en" if st.session_state.lang == "ar" else "ar"
 
@@ -414,7 +487,7 @@ def cv_html(d, tpl, theme, photo=None, paper=False, qr=None):
     for u in lines(d["links"]):
         href = u if u.startswith("http") else "https://" + u
         shown = u.replace("https://", "").replace("http://", "").rstrip("/")
-        lk_items.append(f'<a href="{e(href, quote=True)}" target="_blank" rel="noopener">{e(shown)}</a>')
+        lk_items.append(f'<a href="{e(href, quote=True)}" target="_blank" rel="noopener noreferrer nofollow ugc">{e(shown)}</a>')
     lk = f'<div class="lk">{"".join(lk_items)}</div>' if lk_items else ""
 
     def sec(icon, key, body):
@@ -586,6 +659,8 @@ div[data-baseweb="popover"] li:hover,div[data-baseweb="popover"] [aria-selected=
 .spons{{display:inline-block;margin-top:10px;padding:6px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.2);color:#cfd6ee!important;text-decoration:none;font-size:.82rem}}
 .supp{{font-size:.85rem;margin:6px 0 12px}}
 .supp a{{color:#aab4cf;text-decoration:none;border-bottom:1px dotted #aab4cf}}
+.adslot{{margin:34px auto 10px;text-align:center}}
+.adlbl{{font-size:.7rem;letter-spacing:.14em;color:#8c97b8;margin-bottom:8px}}
 .spons:hover{{border-color:{A}}}
 {CV_CSS}
 """
@@ -597,6 +672,17 @@ def support_html():
         return ""
     return (f'<div class="supp">📢 <a href="{html.escape(AD_LINK, quote=True)}" target="_blank" '
             f'rel="noopener sponsored nofollow">{html.escape(L["support_line"])}</a></div>')
+
+
+def ad_slot():
+    b = AD_BANNER
+    if not (b.get("img") and b.get("url")):
+        return ""
+    w = int(b.get("width", 300))
+    return (f'<div class="adslot"><div class="adlbl">{html.escape(L["ad_label"])}</div>'
+            f'<a href="{html.escape(b["url"], quote=True)}" target="_blank" rel="noopener sponsored nofollow">'
+            f'<img src="{html.escape(b["img"], quote=True)}" alt="{html.escape(b.get("alt", "Advertisement"), quote=True)}" '
+            f'loading="lazy" style="width:{w}px;max-width:100%;border-radius:10px;display:block;margin:auto"/></a></div>')
 
 
 def tools_html():
@@ -655,11 +741,12 @@ if st.session_state.view:
     with _mid:
         pdf_button(_v["d"], _v["t"], THEMES[_v["h"]], None, None, "⬇️ " + L["dl_pdf"])
         st.caption(L["pdf_hint"])
+        st.button(L["view_edit"], on_click=edit_copy, use_container_width=True, key="view_edit")
         st.download_button("📄 " + L["dl_html"], use_container_width=True,
                            data=download_doc(_v["d"], _v["t"], THEMES[_v["h"]], None).encode("utf-8"),
                            file_name=f"{'Resume' if lang == 'en' else 'CV'}_{_v['d']['name'].strip().replace(' ', '_') or 'CV'}.html",
                            mime="text/html")
-    md(f'<div class="foot"><b>✨ Lumina CV</b><br>{html.escape(L["view_made"])}</div>')
+    md(f'<div class="foot"><b>✨ Lumina CV</b><br>{html.escape(L["view_made"])}<br><span style="font-size:.78rem">{html.escape(L["view_note"])}</span></div>')
     st.stop()
 
 page = st.session_state.page
@@ -685,6 +772,7 @@ if page == "home":
 
     md(f'<div class="h2s">{html.escape(L["prev_title"])}</div>')
     md(f'<div style="max-width:880px;margin:auto">{cv_html(demo, "glass", TH)}</div>')
+    md(ad_slot())
 
     md(f'<div class="h2s">{html.escape(L["feat_title"])}</div>')
     cards = "".join(f'<div class="fc"><div class="ic">{i}</div><h5>{html.escape(t)}</h5><p>{html.escape(x)}</p></div>'
@@ -771,6 +859,7 @@ elif page == "builder":
                 st.info(L["share_addr"])
             st.caption(L["share_note"])
         md(cv_html(d, st.session_state.tpl, TH, photo, qr=_qr))
+        md(ad_slot())
 
 # =====================================================================
 # القوالب
@@ -786,6 +875,7 @@ elif page == "templates":
             if st.session_state.tpl == tp:
                 st.caption("✅ " + L["t_cur"])
             st.button(L["t_use"], on_click=go, args=("builder", tp), key=f"use_{tp}", use_container_width=True, type="primary")
+    md(ad_slot())
 
 # =====================================================================
 # كيف يعمل + الأسئلة الشائعة + الخصوصية والشروط
@@ -839,8 +929,22 @@ elif page == "contact":
                            use_container_width=True, disabled=not cg.strip(), type="primary")
             st.caption(L["c_hint"])
 
+elif page in ("about", "privacy", "terms"):
+    _key = {"about": "about", "privacy": "privp", "terms": "termsp"}[page]
+    md(f'<div class="ptitle">{html.escape(L[_key + "_title"])}</div><div class="psub">{html.escape(L["pg_updated"])}</div>')
+    for _h, _t in L[_key + "_secs"]:
+        if "{email}" in _t:
+            if not CONTACT["email"]:
+                continue
+            _t = _t.replace("{email}", CONTACT["email"])
+        md(f'<div class="fc" style="margin-bottom:12px"><h5>{html.escape(_h)}</h5><p>{html.escape(_t)}</p></div>')
+
 # =====================================================================
 # الفوتر
 # =====================================================================
 AD_HTML = (f'<br><a class="spons" href="{html.escape(AD_LINK, quote=True)}" target="_blank" rel="noopener sponsored nofollow">📢 {html.escape(L["ad_text"])}</a>' if AD_LINK else "")
+_, _f1, _f2, _f3, _ = st.columns([2, 1.2, 1.2, 1.2, 2])
+_f1.button(L["f_priv"], on_click=go, args=("privacy",), key="ft_priv", use_container_width=True)
+_f2.button(L["f_terms"], on_click=go, args=("terms",), key="ft_terms", use_container_width=True)
+_f3.button(L["f_about"], on_click=go, args=("about",), key="ft_about", use_container_width=True)
 md(f'<div class="foot"><b>✨ Lumina CV</b><br>© 2026 &nbsp;|&nbsp; {html.escape(L["footer"])}<br>{html.escape(L["footer2"])}{AD_HTML}</div>')
