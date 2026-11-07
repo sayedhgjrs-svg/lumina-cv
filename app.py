@@ -512,6 +512,23 @@ header[data-testid="stHeader"],#MainMenu,footer,[data-testid="stSidebar"],[data-
 .stTextInput input,.stTextArea textarea{{background:rgba(255,255,255,.06)!important;color:#fff!important;border:1px solid rgba(255,255,255,.18)!important;border-radius:12px!important;text-align:start}}
 .stSelectbox div[data-baseweb="select"]>div{{background:rgba(255,255,255,.06)!important;border:1px solid rgba(255,255,255,.18)!important;border-radius:12px!important}}
 .stSelectbox div[data-baseweb="select"] *{{color:#fff!important}}
+/* إجبار الوضع الداكن على كل الأجهزة (الموبايل في الوضع الفاتح كان بيخلي الحقول بيضا والكتابة بيضا) */
+:root{{color-scheme:dark}}
+.stApp div[data-baseweb="input"],.stApp div[data-baseweb="base-input"],.stApp div[data-baseweb="textarea"]{{background:rgba(255,255,255,.07)!important;border-radius:12px!important}}
+.stApp div[data-baseweb="input"],.stApp div[data-baseweb="textarea"]{{border:1px solid rgba(255,255,255,.18)!important}}
+.stTextInput input,.stTextArea textarea{{background:transparent!important;color:#fff!important;-webkit-text-fill-color:#fff!important;caret-color:#fff}}
+.stTextInput input::placeholder,.stTextArea textarea::placeholder{{color:#8c97b8!important;-webkit-text-fill-color:#8c97b8!important}}
+.stSelectbox div[data-baseweb="select"]>div{{background:rgba(255,255,255,.07)!important}}
+.stSelectbox svg{{fill:#d5dcf2!important}}
+div[data-baseweb="popover"] ul,div[data-baseweb="popover"] [role="listbox"]{{background:#161b2b!important}}
+div[data-baseweb="popover"] li,div[data-baseweb="popover"] [role="option"]{{background:#161b2b!important;color:#e8ecfa!important}}
+div[data-baseweb="popover"] li:hover,div[data-baseweb="popover"] [aria-selected="true"]{{background:#26304a!important}}
+[data-testid="stExpander"] details,[data-testid="stExpander"] summary{{background:transparent!important}}
+[data-testid="stAlert"]{{background:rgba(255,255,255,.07)!important;border:1px solid rgba(255,255,255,.15)}}
+[data-testid="stAlert"] *{{color:#e8ecfa!important}}
+[data-testid="stCode"] pre{{background:#0f1424!important}}
+[data-testid="stCode"] *{{color:#cfe8ff!important}}
+[data-testid="stCaptionContainer"] *{{color:#aab4cf!important}}
 [data-testid="stExpander"]{{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12)!important;border-radius:16px;margin-bottom:12px}}
 [data-testid="stExpander"] summary,[data-testid="stExpander"] summary *{{color:#fff!important;font-weight:700}}
 [data-testid="stFileUploader"] section{{background:rgba(255,255,255,.05);border:1px dashed rgba(255,255,255,.25);border-radius:14px}}
