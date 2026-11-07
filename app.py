@@ -20,6 +20,22 @@ CONTACT = {
     "loc": {"ar": "", "en": ""},
 }
 
+# رابط الإعلان (اتركه فاضي "" لو عاوز تشيله). بيظهر في الفوتر فقط وبعلامة واضحة إنه إعلان.
+AD_LINK = "https://uplcm.com/4/11097841"
+
+# روابط الإحالة (Affiliate): أضف روابطك الحقيقية هنا بعد ما تسجل في برامج الإحالة. القائمة الفاضية = لا يظهر قسم الموارد.
+# مثال: {"title": {"ar": "اسم الخدمة", "en": "Service name"}, "desc": {"ar": "وصف قصير", "en": "Short description"}, "url": "https://..."}
+AFFILIATES = []
+
+# أدواتك الأخرى (كروت تعريفية بمواقعك). ضع رابط الأداة في "url". الفاضي لا يظهر.
+OTHER_TOOLS = [
+    {"icon": "🖼️",
+     "title": {"ar": "ضغط وتغيير حجم الصور", "en": "Image Resizer & Compressor"},
+     "desc": {"ar": "صغّر حجم صورتك مباشرة في المتصفح بمنزلقات للجودة، ثم حمّلها PNG أو JPG.",
+              "en": "Shrink your image right in the browser with quality sliders, then download it as PNG or JPG."},
+     "url": "https://tools.pulsesave.net/image-resizer/"},
+]
+
 PAGES = ["home", "builder", "templates", "how", "contact"]
 TPLS = ["glass", "classic", "side"]
 FIELDS = ["name", "title", "email", "phone", "city", "links", "summary", "exp", "edu",
@@ -97,6 +113,13 @@ T = {
         "c_send": "أرسل عبر البريد", "c_hint": "سيفتح زر الإرسال تطبيق البريد لديك والرسالة جاهزة.",
         "c_subject": "رسالة من موقع Lumina CV",
         "c_empty": "بيانات التواصل ستتوفر قريبًا.",
+        "ad_text": "رابط إعلاني: ادعم الموقع المجاني بزيارة راعينا",
+        "dl_pdf": "تحميل PDF", "dl_html": "تحميل ملف HTML", "pdf_hint": "ستفتح نافذة الطباعة: اختر «حفظ كـ PDF» ثم احفظ الملف.",
+        "support_line": "أعجبتك الأداة؟ ادعمنا برابط إعلاني (اختياري)",
+        "res_title": "موارد مفيدة في رحلة البحث عن عمل",
+        "res_note": "بعض هذه الروابط روابط إحالة: قد نحصل على عمولة دون أي تكلفة إضافية عليك.",
+        "res_btn": "اعرف المزيد",
+        "tools_title": "أدوات مجانية أخرى", "tools_btn": "افتح الأداة", "photo_tip": "الصورة كبيرة؟ صغّرها مجانًا بأداتنا لضغط الصور",
         "share_btn": "إنشاء رابط للمشاركة",
         "qr_check": "أضف رمز QR إلى سيرتي", "qr_label": "امسح لعرضها أونلاين", "qr_scan": "امسح الرمز لفتح سيرتك",
         "share_ready": "انسخ الرابط وأرسله للشركات.",
@@ -181,6 +204,13 @@ T = {
         "c_send": "Send by email", "c_hint": "The send button opens your email app with the message ready.",
         "c_subject": "Message from Lumina CV",
         "c_empty": "Contact details are coming soon.",
+        "ad_text": "Sponsored link: support this free site by visiting our sponsor",
+        "dl_pdf": "Download PDF", "dl_html": "Download HTML file", "pdf_hint": "A print window opens: choose \"Save as PDF\" and save the file.",
+        "support_line": "Liked the tool? Support us with a sponsored link (optional)",
+        "res_title": "Helpful resources for your job search",
+        "res_note": "Some of these are affiliate links: we may earn a commission at no extra cost to you.",
+        "res_btn": "Learn more",
+        "tools_title": "More free tools", "tools_btn": "Open tool", "photo_tip": "Photo too large? Shrink it free with our image compressor",
         "share_btn": "Create shareable link",
         "qr_check": "Add a QR code to my resume", "qr_label": "Scan to view online", "qr_scan": "Scan the code to open your resume",
         "share_ready": "Copy the link and send it to employers.",
@@ -431,6 +461,35 @@ def download_doc(d, tpl, theme, photo, qr=None):
 @page{{size:{'letter' if lang == 'en' else 'A4'};margin:.5in}}@media print{{body{{padding:0}}}}</style></head><body><div class="wrap">{body}</div></body></html>"""
 
 
+def pdf_button(d, tpl, theme, photo, qr, label):
+    """زر PDF: بيطبع نسخة الورق من السيرفر-سايد HTML عبر نافذة الطباعة (نص حقيقي، عربي سليم، مناسب لأنظمة ATS)."""
+    try:
+        raw_title = f"{d['name'].strip() or 'CV'} - {'Resume' if lang == 'en' else 'CV'}"
+        js_title = json.dumps(raw_title).replace("<", "\\u003c").replace(">", "\\u003e")
+        page = "letter" if lang == "en" else "A4"
+        doc = f"""<!DOCTYPE html><html lang="{lang}" dir="{L['dir']}"><head><meta charset="utf-8"><title>{html.escape(raw_title)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;600;800&family=Source+Serif+4:wght@400;600;700&display=swap" rel="stylesheet">
+<style>html,body{{margin:0;background:transparent;font-family:{L['ff']}}}
+.btn{{width:100%;height:48px;border:0;border-radius:14px;color:#fff;font-weight:700;font-size:1rem;cursor:pointer;font-family:inherit;background:linear-gradient(135deg,{theme['a']},{theme['b']})}}
+.btn:hover{{filter:brightness(1.08)}}
+.sheet{{position:absolute;left:-99999px;top:0;width:860px}}
+{CV_CSS}
+@page{{size:{page};margin:.4in}}
+@media print{{.btn{{display:none}}html,body{{background:#fff}}.sheet{{position:static;width:auto}}.cvx{{border-radius:0}}.t-side{{grid-template-columns:minmax(0,34fr) minmax(0,66fr)!important}}.cvx .it,.cvx .qr{{break-inside:avoid}}.cvx .sc h4{{break-after:avoid}}}}</style></head><body>
+<button class="btn" onclick="go()">{html.escape(label)}</button>
+<div class="sheet">{cv_html(d, tpl, theme, photo, paper=True, qr=qr)}</div>
+<script>function go(){{var T={js_title},old=null;try{{old=window.parent.document.title;window.parent.document.title=T;}}catch(e){{}}
+var f=(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve();
+f.then(function(){{window.print();try{{if(old!==null)window.parent.document.title=old;}}catch(e){{}}}});}}</script></body></html>"""
+        if hasattr(st, "iframe"):
+            st.iframe(doc, height=56)
+        else:
+            import streamlit.components.v1 as components
+            components.html(doc, height=56)
+    except Exception:
+        pass
+
+
 def current_data():
     return {f: st.session_state[f"{f}_{lang}"] for f in FIELDS}
 
@@ -457,8 +516,8 @@ header[data-testid="stHeader"],#MainMenu,footer,[data-testid="stSidebar"],[data-
 [data-testid="stExpander"] summary,[data-testid="stExpander"] summary *{{color:#fff!important;font-weight:700}}
 [data-testid="stFileUploader"] section{{background:rgba(255,255,255,.05);border:1px dashed rgba(255,255,255,.25);border-radius:14px}}
 [data-testid="stFileUploader"] section *{{color:#d5dcf2!important}}
-.stButton button{{background:rgba(255,255,255,.07)!important;color:#e8ecfa!important;border:1px solid rgba(255,255,255,.18)!important;border-radius:14px!important;font-weight:600;transition:transform .2s,box-shadow .2s}}
-.stButton button[kind="primary"],.stButton button[data-testid="stBaseButton-primary"],.stDownloadButton button,.stLinkButton a{{background:linear-gradient(135deg,{A},{B})!important;color:#fff!important;border:0!important;font-weight:700;padding:.65rem 1.2rem;border-radius:14px!important}}
+.stButton button,.stDownloadButton button{{background:rgba(255,255,255,.07)!important;color:#e8ecfa!important;border:1px solid rgba(255,255,255,.18)!important;border-radius:14px!important;font-weight:600;transition:transform .2s,box-shadow .2s}}
+.stButton button[kind="primary"],.stButton button[data-testid="stBaseButton-primary"],.stDownloadButton button[kind="primary"],.stDownloadButton button[data-testid="stBaseButton-primary"],.stLinkButton a{{background:linear-gradient(135deg,{A},{B})!important;color:#fff!important;border:0!important;font-weight:700;padding:.65rem 1.2rem;border-radius:14px!important}}
 .stButton button *,.stDownloadButton button *,.stLinkButton a *{{color:inherit!important}}
 .stButton button:hover,.stDownloadButton button:hover,.stLinkButton a:hover{{transform:translateY(-2px);box-shadow:0 8px 28px color-mix(in srgb,{B} 55%,transparent)}}
 .st-key-topnav .stButton button{{padding:.5rem .4rem;white-space:nowrap;font-size:.92rem}}
@@ -501,9 +560,63 @@ header[data-testid="stHeader"],#MainMenu,footer,[data-testid="stSidebar"],[data-
 .tdesc{{color:#b9c3de;font-size:.92rem;min-height:70px}}
 .foot{{text-align:center;color:#8c97b8;font-size:.88rem;border-top:1px solid rgba(255,255,255,.1);margin-top:50px;padding-top:20px;line-height:1.9}}
 .foot b{{color:#fff}}
+.spons{{display:inline-block;margin-top:10px;padding:6px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.2);color:#cfd6ee!important;text-decoration:none;font-size:.82rem}}
+.supp{{font-size:.85rem;margin:6px 0 12px}}
+.supp a{{color:#aab4cf;text-decoration:none;border-bottom:1px dotted #aab4cf}}
+.spons:hover{{border-color:{A}}}
 {CV_CSS}
 """
 md(f"<style>{SITE_CSS}</style>")
+
+
+def support_html():
+    if not AD_LINK:
+        return ""
+    return (f'<div class="supp">📢 <a href="{html.escape(AD_LINK, quote=True)}" target="_blank" '
+            f'rel="noopener sponsored nofollow">{html.escape(L["support_line"])}</a></div>')
+
+
+def tools_html():
+    items = [t for t in OTHER_TOOLS if t.get("url")]
+    if not items:
+        return ""
+    cards = "".join(
+        f'<div class="fc"><div class="ic">{html.escape(t.get("icon", "🛠️"))}</div><h5>{html.escape(t["title"][lang])}</h5>'
+        f'<p>{html.escape(t["desc"][lang])}</p><p style="margin-top:10px"><a href="{html.escape(t["url"], quote=True)}" '
+        f'target="_blank" rel="noopener">{html.escape(L["tools_btn"])} ←</a></p></div>' for t in items)
+    return f'<div class="h2s">{html.escape(L["tools_title"])}</div><div class="grid3">{cards}</div>'
+
+
+def compress_photo(data, mime):
+    try:
+        import io
+        from PIL import Image, ImageOps
+        im = ImageOps.exif_transpose(Image.open(io.BytesIO(data)))
+        if im.mode in ("RGBA", "LA", "P"):
+            im = im.convert("RGBA")
+            bg = Image.new("RGB", im.size, (255, 255, 255))
+            bg.paste(im, mask=im.split()[-1])
+            im = bg
+        else:
+            im = im.convert("RGB")
+        im.thumbnail((520, 520))
+        buf = io.BytesIO()
+        im.save(buf, "JPEG", quality=85, optimize=True)
+        return "image/jpeg", buf.getvalue()
+    except Exception:
+        return mime, data
+
+
+def resources_html():
+    items = [a for a in AFFILIATES if a.get("url")]
+    if not items:
+        return ""
+    cards = "".join(
+        f'<div class="fc"><h5>{html.escape(a["title"][lang])}</h5><p>{html.escape(a["desc"][lang])}</p>'
+        f'<p style="margin-top:10px"><a href="{html.escape(a["url"], quote=True)}" target="_blank" '
+        f'rel="noopener sponsored nofollow">{html.escape(L["res_btn"])} ←</a></p></div>' for a in items)
+    return (f'<div class="h2s">{html.escape(L["res_title"])}</div><div class="grid3">{cards}</div>'
+            f'<div class="psub" style="text-align:center;margin-top:12px;font-size:.85rem">{html.escape(L["res_note"])}</div>')
 
 # =====================================================================
 # الهيدر: الشعار + التنقل + اللغة
@@ -517,7 +630,9 @@ if st.session_state.view:
     md(f'<div style="max-width:880px;margin:18px auto">{cv_html(_v["d"], _v["t"], THEMES[_v["h"]])}</div>')
     _, _mid, _ = st.columns([1, 2, 1])
     with _mid:
-        st.download_button("⬇️ " + L["download"], type="primary", use_container_width=True,
+        pdf_button(_v["d"], _v["t"], THEMES[_v["h"]], None, None, "⬇️ " + L["dl_pdf"])
+        st.caption(L["pdf_hint"])
+        st.download_button("📄 " + L["dl_html"], use_container_width=True,
                            data=download_doc(_v["d"], _v["t"], THEMES[_v["h"]], None).encode("utf-8"),
                            file_name=f"{'Resume' if lang == 'en' else 'CV'}_{_v['d']['name'].strip().replace(' ', '_') or 'CV'}.html",
                            mime="text/html")
@@ -557,6 +672,8 @@ if page == "home":
     steps = "".join(f'<div class="fc stp"><div class="n">{n}</div><div><h5 style="margin-top:0">{html.escape(t)}</h5><p>{html.escape(x)}</p></div></div>'
                     for n, (t, x) in enumerate(L["steps"], 1))
     md(f'<div class="grid3">{steps}</div>')
+    md(tools_html())
+    md(resources_html())
 
 # =====================================================================
 # المنشئ
@@ -577,9 +694,15 @@ elif page == "builder":
             st.text_input(L["f_city"], key=f"city_{lang}")
             st.text_area(L["f_links"], key=f"links_{lang}", height=80)
             st.caption(L["photo_hint"])
+            _tl = next((t["url"] for t in OTHER_TOOLS if t.get("url")), None)
+            if _tl:
+                md(f'<div class="supp">🖼️ <a href="{html.escape(_tl, quote=True)}" target="_blank" rel="noopener">{html.escape(L["photo_tip"])}</a></div>')
             up = st.file_uploader(L["photo"], type=["png", "jpg", "jpeg", "webp"], key=f"pu_{st.session_state.photo_n}")
             if up is not None:
-                st.session_state.photo = (up.type or "image/png", up.getvalue())
+                _fid = getattr(up, "file_id", None) or f"{up.name}-{up.size}"
+                if st.session_state.get("photo_fid") != _fid:
+                    st.session_state.photo = compress_photo(up.getvalue(), up.type or "image/png")
+                    st.session_state.photo_fid = _fid
                 photo = st.session_state.photo
             if st.session_state.photo:
                 st.caption("✅ " + L["photo_ok"])
@@ -597,11 +720,13 @@ elif page == "builder":
     with prev:
         d = current_data()
         _qr = st.session_state.get("share_qr") if st.session_state.qr_on else None
-        st.download_button("⬇️ " + L["download"], type="primary",
+        pdf_button(d, st.session_state.tpl, TH, photo, _qr, "⬇️ " + L["dl_pdf"])
+        st.caption(L["pdf_hint"])
+        st.download_button("📄 " + L["dl_html"],
                            data=download_doc(d, st.session_state.tpl, TH, photo, _qr).encode("utf-8"),
                            file_name=f"{'Resume' if lang == 'en' else 'CV'}_{d['name'].strip().replace(' ', '_') or 'CV'}.html",
                            mime="text/html", use_container_width=True)
-        st.caption(L["tip"])
+        md(support_html())
         if st.button("🔗 " + L["share_btn"], key="share_btn", use_container_width=True):
             _t = encode_cv(d, st.session_state.tpl, st.session_state.th, lang)
             st.session_state.share_tok = _t
@@ -655,6 +780,7 @@ elif page == "how":
         st.write(L["priv_text"])
     with st.expander("📄 " + L["terms_title"]):
         st.write(L["terms_text"])
+    md(resources_html())
 
 # =====================================================================
 # تواصل معنا
@@ -693,4 +819,5 @@ elif page == "contact":
 # =====================================================================
 # الفوتر
 # =====================================================================
-md(f'<div class="foot"><b>✨ Lumina CV</b><br>© 2026 &nbsp;|&nbsp; {html.escape(L["footer"])}<br>{html.escape(L["footer2"])}</div>')
+AD_HTML = (f'<br><a class="spons" href="{html.escape(AD_LINK, quote=True)}" target="_blank" rel="noopener sponsored nofollow">📢 {html.escape(L["ad_text"])}</a>' if AD_LINK else "")
+md(f'<div class="foot"><b>✨ Lumina CV</b><br>© 2026 &nbsp;|&nbsp; {html.escape(L["footer"])}<br>{html.escape(L["footer2"])}{AD_HTML}</div>')
