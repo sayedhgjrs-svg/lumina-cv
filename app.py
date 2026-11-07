@@ -512,6 +512,12 @@ header[data-testid="stHeader"],#MainMenu,footer,[data-testid="stSidebar"],[data-
 .stTextInput input,.stTextArea textarea{{background:rgba(255,255,255,.06)!important;color:#fff!important;border:1px solid rgba(255,255,255,.18)!important;border-radius:12px!important;text-align:start}}
 .stSelectbox div[data-baseweb="select"]>div{{background:rgba(255,255,255,.06)!important;border:1px solid rgba(255,255,255,.18)!important;border-radius:12px!important}}
 .stSelectbox div[data-baseweb="select"] *{{color:#fff!important}}
+/* Streamlit الجديد شال data-baseweb، فبنستهدف الـ data-testid الثابتة لحقول الكتابة */
+[data-testid="stTextInputRootElement"],[data-testid="stTextAreaRootElement"]{{background:rgba(255,255,255,.08)!important;border:1px solid rgba(255,255,255,.2)!important;border-radius:12px!important}}
+[data-testid="stTextInputRootElement"]:focus-within,[data-testid="stTextAreaRootElement"]:focus-within{{border-color:{A}!important;box-shadow:0 0 0 1px {A}!important}}
+[data-testid="stTextInputRootElement"] *,[data-testid="stTextAreaRootElement"] *{{background-color:transparent!important}}
+[data-testid="stTextInputField"],[data-testid="stTextInput"] input,[data-testid="stTextArea"] textarea,[data-testid="stTextAreaRootElement"] textarea{{color:#fff!important;-webkit-text-fill-color:#fff!important;caret-color:#fff!important;background:transparent!important}}
+[data-testid="stTextInputField"]::placeholder,[data-testid="stTextArea"] textarea::placeholder{{color:#8c97b8!important;-webkit-text-fill-color:#8c97b8!important;opacity:1}}
 /* إجبار الوضع الداكن على كل الأجهزة (الموبايل في الوضع الفاتح كان بيخلي الحقول بيضا والكتابة بيضا) */
 :root{{color-scheme:dark}}
 .stApp div[data-baseweb="input"],.stApp div[data-baseweb="base-input"],.stApp div[data-baseweb="textarea"]{{background:rgba(255,255,255,.07)!important;border-radius:12px!important}}
