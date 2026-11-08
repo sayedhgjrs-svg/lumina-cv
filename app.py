@@ -531,11 +531,20 @@ def download_doc(d, tpl, theme, photo, qr=None):
 <title>{html.escape(d['name'])} - {'Resume' if lang == 'en' else 'CV'}</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;600;800&family=Source+Serif+4:wght@400;600;700&display=swap" rel="stylesheet">
 <style>body{{margin:0;padding:24px;background:#fff}}.wrap{{max-width:860px;margin:auto}}{CV_CSS}
-@page{{size:{'letter' if lang == 'en' else 'A4'};margin:.5in}}@media print{{body{{padding:0}}}}</style></head><body><div class="wrap">{body}</div></body></html>"""
+@page{{size:{'letter' if lang == 'en' else 'A4'};margin:6mm}}
+@media print{{
+  html,body{{padding:0!important;margin:0!important;background:#fff}}
+  .wrap{{max-width:100%!important;zoom:0.90}}
+  .cvx{{padding:18px 22px!important;border-radius:0!important;box-shadow:none!important}}
+  .cvx .sc{{margin-top:10px!important}}
+  .cvx .sc h4{{margin-bottom:6px!important;break-after:avoid}}
+  .cvx .it{{margin-bottom:5px!important;padding:6px 10px!important;break-inside:avoid}}
+  .cvx .qr{{break-inside:avoid}}
+}}</style></head><body><div class="wrap">{body}</div></body></html>"""
 
 
 def pdf_button(d, tpl, theme, photo, qr, label):
-    """زر PDF: بيطبع نسخة الورق من السيرفر-سايد HTML عبر نافذة الطباعة (نص حقيقي، عربي سليم، مناسب لأنظمة ATS)."""
+    """زر PDF: يطبع السيرة الذاتية في صفحة واحدة تلقائياً على الموبايل والكمبيوتر."""
     try:
         raw_title = f"{d['name'].strip() or 'CV'} - {'Resume' if lang == 'en' else 'CV'}"
         js_title = json.dumps(raw_title).replace("<", "\\u003c").replace(">", "\\u003e")
@@ -547,10 +556,20 @@ def pdf_button(d, tpl, theme, photo, qr, label):
 .btn:hover{{filter:brightness(1.08)}}
 .sheet{{position:absolute;left:-99999px;top:0;width:860px}}
 {CV_CSS}
-@page{{size:{page};margin:.4in}}
-@media print{{.btn{{display:none}}html,body{{background:#fff}}.sheet{{position:static;width:auto}}.cvx{{border-radius:0}}.t-side{{grid-template-columns:minmax(0,34fr) minmax(0,66fr)!important}}.cvx .it,.cvx .qr{{break-inside:avoid}}.cvx .sc h4{{break-after:avoid}}}}</style></head><body>
+@page{{size:{page};margin:6mm}}
+@media print{{
+  .btn{{display:none!important}}
+  html,body{{background:#fff;margin:0!important;padding:0!important}}
+  .sheet{{position:static;width:auto;zoom:0.90}}
+  .cvx{{border-radius:0!important;padding:18px 22px!important;box-shadow:none!important;line-height:1.4!important}}
+  .cvx .sc{{margin-top:10px!important}}
+  .cvx .sc h4{{margin-bottom:6px!important;break-after:avoid}}
+  .cvx .it{{margin-bottom:5px!important;padding:6px 10px!important;break-inside:avoid}}
+  .cvx .qr{{break-inside:avoid}}
+  .t-side{{grid-template-columns:minmax(0,34fr) minmax(0,66fr)!important}}
+}}</style></head><body>
 <button class="btn" onclick="go()">{html.escape(label)}</button>
-<div class="sheet">{cv_html(d, tpl, theme, photo, paper=True, qr=qr)}</div>
+<div class="sheet" id="printSheet">{cv_html(d, tpl, theme, photo, paper=True, qr=qr)}</div>
 <script>function go(){{var T={js_title},old=null;try{{old=window.parent.document.title;window.parent.document.title=T;}}catch(e){{}}
 var f=(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve();
 f.then(function(){{window.print();try{{if(old!==null)window.parent.document.title=old;}}catch(e){{}}}});}}</script></body></html>"""
