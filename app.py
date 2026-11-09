@@ -46,6 +46,11 @@ TPLS = ["glass", "classic", "side"]
 FIELDS = ["name", "title", "email", "phone", "city", "links", "summary", "exp", "edu",
           "projects", "courses", "skills", "langs"]
 
+st.markdown(
+    "📖 مش عارف تكتب إيه؟ [شوف 15 مثال جاهز للنبذة المهنية]"
+    "(https://www.earnmoneyhq.com/2026/11/15.html)"
+)
+
 THEMES = [
     {"a": "#00f5d4", "b": "#7b2ff7", "bg": "#070b14"},
     {"a": "#c77dff", "b": "#ff5db1", "bg": "#0d0716"},
