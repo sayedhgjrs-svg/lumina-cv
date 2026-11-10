@@ -1,5 +1,6 @@
 import base64
 import html
+import os
 import json
 import zlib
 from urllib.parse import quote
@@ -41,15 +42,17 @@ OTHER_TOOLS = [
      "url": "https://tools.pulsesave.net/image-resizer/"},
 ]
 
+# صور توضيحية (رسومات) للمعاينات فقط، مش صور حقيقية
+SAMPLE_AVATARS = {
+    "glass": ("image/svg+xml", b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d7e3f2"/><stop offset="1" stop-color="#8ea7c8"/></linearGradient></defs><rect width="200" height="200" fill="url(#g)"/><path d="M14 200C14 154 56 136 100 136s86 18 86 64z" fill="#2b3a55"/><path d="M80 138l20 34 20-34z" fill="#f3f5f9"/><path d="M92 150l8 22 8-22-8-6z" fill="#b84a4a"/><rect x="87" y="110" width="26" height="30" rx="9" fill="#dca988"/><ellipse cx="100" cy="86" rx="31" ry="37" fill="#e8bd9d"/><ellipse cx="69" cy="90" rx="5" ry="9" fill="#e0b090"/><ellipse cx="131" cy="90" rx="5" ry="9" fill="#e0b090"/><path d="M68 84C64 50 88 40 104 42c22 2 34 18 28 44-4-14-12-22-32-22-14 0-26 6-32 20z" fill="#3a2a20"/><ellipse cx="88" cy="90" rx="3.2" ry="3.8" fill="#2a2320"/><ellipse cx="112" cy="90" rx="3.2" ry="3.8" fill="#2a2320"/><path d="M84 82q4-4 9-1M107 81q5-3 9 1" stroke="#3a2a20" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M90 108q10 8 20 0" stroke="#b5675a" stroke-width="3" fill="none" stroke-linecap="round"/></svg>'),
+    "classic": ("image/svg+xml", b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4e3d6"/><stop offset="1" stop-color="#d9a98c"/></linearGradient></defs><rect width="200" height="200" fill="url(#g)"/><path d="M62 92C54 34 146 34 138 92L146 170 54 170z" fill="#4a2f22"/><path d="M14 200C14 154 56 136 100 136s86 18 86 64z" fill="#1f6f78"/><path d="M82 138l18 24 18-24z" fill="#f6f1ea"/><rect x="88" y="110" width="24" height="30" rx="9" fill="#efc5a5"/><ellipse cx="100" cy="86" rx="29" ry="35" fill="#f2cdb0"/><path d="M70 84C64 34 136 34 130 84 118 64 82 64 70 84z" fill="#4a2f22"/><ellipse cx="89" cy="90" rx="3" ry="3.6" fill="#2a2320"/><ellipse cx="111" cy="90" rx="3" ry="3.6" fill="#2a2320"/><path d="M85 83q4-3 8-1M107 82q4-2 8 1" stroke="#4a2f22" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M91 106q9 7 18 0" stroke="#c45f66" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="76" cy="100" r="5" fill="#e8a894" opacity=".35"/><circle cx="124" cy="100" r="5" fill="#e8a894" opacity=".35"/></svg>'),
+    "side": ("image/svg+xml", b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#cfd8f3"/><stop offset="1" stop-color="#7d8fd1"/></linearGradient></defs><rect width="200" height="200" fill="url(#g)"/><path d="M14 200C14 154 56 136 100 136s86 18 86 64z" fill="#3a3f5c"/><path d="M82 138l18 28 18-28z" fill="#eef0f7"/><rect x="87" y="110" width="26" height="30" rx="9" fill="#b9805c"/><ellipse cx="100" cy="86" rx="31" ry="37" fill="#c68a63"/><ellipse cx="69" cy="90" rx="5" ry="9" fill="#bb805a"/><ellipse cx="131" cy="90" rx="5" ry="9" fill="#bb805a"/><path d="M69 80C66 52 90 46 102 47c20 1 33 14 29 33-5-12-14-18-31-18-14 0-26 5-31 18z" fill="#1d1816"/><path d="M72 100c2 22 14 34 28 34s26-12 28-34c-6 8-12 12-28 12s-22-4-28-12z" fill="#1d1816"/><path d="M90 114q10 6 20 0" stroke="#e8c9b5" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="88" cy="90" r="9" fill="none" stroke="#2a2320" stroke-width="2.4"/><circle cx="112" cy="90" r="9" fill="none" stroke="#2a2320" stroke-width="2.4"/><path d="M97 90h6" stroke="#2a2320" stroke-width="2.4"/><ellipse cx="88" cy="90" rx="2.6" ry="3.2" fill="#2a2320"/><ellipse cx="112" cy="90" rx="2.6" ry="3.2" fill="#2a2320"/></svg>'),
+}
+
 PAGES = ["home", "builder", "templates", "how", "contact"]
 TPLS = ["glass", "classic", "side"]
 FIELDS = ["name", "title", "email", "phone", "city", "links", "summary", "exp", "edu",
           "projects", "courses", "skills", "langs"]
-
-st.markdown(
-    "📖 مش عارف تكتب إيه؟ [شوف 15 مثال جاهز للنبذة المهنية]"
-    "(https://www.earnmoneyhq.com/2026/11/15.html)"
-)
 
 THEMES = [
     {"a": "#00f5d4", "b": "#7b2ff7", "bg": "#070b14"},
@@ -125,6 +128,7 @@ T = {
         "c_empty": "بيانات التواصل ستتوفر قريبًا.",
         "ad_text": "رابط إعلاني: ادعم الموقع المجاني بزيارة راعينا",
         "ad_label": "إعلان",
+        "sample_note": "معاينة تجريبية ببيانات افتراضية",
         "view_edit": "✏️ تعديل نسخة من هذه السيرة",
         "view_note": "المحتوى من صاحب السيرة ولا يتحقق منه Lumina.",
         "f_about": "عن Lumina", "f_priv": "الخصوصية", "f_terms": "الشروط",
@@ -244,6 +248,7 @@ T = {
         "c_empty": "Contact details are coming soon.",
         "ad_text": "Sponsored link: support this free site by visiting our sponsor",
         "ad_label": "ADVERTISEMENT",
+        "sample_note": "Sample preview with sample data",
         "view_edit": "✏️ Edit a copy of this resume",
         "view_note": "Content is provided by the resume owner and is not verified by Lumina.",
         "f_about": "About Lumina", "f_priv": "Privacy", "f_terms": "Terms",
@@ -536,20 +541,11 @@ def download_doc(d, tpl, theme, photo, qr=None):
 <title>{html.escape(d['name'])} - {'Resume' if lang == 'en' else 'CV'}</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;600;800&family=Source+Serif+4:wght@400;600;700&display=swap" rel="stylesheet">
 <style>body{{margin:0;padding:24px;background:#fff}}.wrap{{max-width:860px;margin:auto}}{CV_CSS}
-@page{{size:{'letter' if lang == 'en' else 'A4'};margin:6mm}}
-@media print{{
-  html,body{{padding:0!important;margin:0!important;background:#fff}}
-  .wrap{{max-width:100%!important;zoom:0.90}}
-  .cvx{{padding:18px 22px!important;border-radius:0!important;box-shadow:none!important}}
-  .cvx .sc{{margin-top:10px!important}}
-  .cvx .sc h4{{margin-bottom:6px!important;break-after:avoid}}
-  .cvx .it{{margin-bottom:5px!important;padding:6px 10px!important;break-inside:avoid}}
-  .cvx .qr{{break-inside:avoid}}
-}}</style></head><body><div class="wrap">{body}</div></body></html>"""
+@page{{size:{'letter' if lang == 'en' else 'A4'};margin:.5in}}@media print{{body{{padding:0}}}}</style></head><body><div class="wrap">{body}</div></body></html>"""
 
 
 def pdf_button(d, tpl, theme, photo, qr, label):
-    """زر PDF: يطبع السيرة الذاتية في صفحة واحدة تلقائياً على الموبايل والكمبيوتر."""
+    """زر PDF: بيطبع نسخة الورق من السيرفر-سايد HTML عبر نافذة الطباعة (نص حقيقي، عربي سليم، مناسب لأنظمة ATS)."""
     try:
         raw_title = f"{d['name'].strip() or 'CV'} - {'Resume' if lang == 'en' else 'CV'}"
         js_title = json.dumps(raw_title).replace("<", "\\u003c").replace(">", "\\u003e")
@@ -561,20 +557,10 @@ def pdf_button(d, tpl, theme, photo, qr, label):
 .btn:hover{{filter:brightness(1.08)}}
 .sheet{{position:absolute;left:-99999px;top:0;width:860px}}
 {CV_CSS}
-@page{{size:{page};margin:6mm}}
-@media print{{
-  .btn{{display:none!important}}
-  html,body{{background:#fff;margin:0!important;padding:0!important}}
-  .sheet{{position:static;width:auto;zoom:0.90}}
-  .cvx{{border-radius:0!important;padding:18px 22px!important;box-shadow:none!important;line-height:1.4!important}}
-  .cvx .sc{{margin-top:10px!important}}
-  .cvx .sc h4{{margin-bottom:6px!important;break-after:avoid}}
-  .cvx .it{{margin-bottom:5px!important;padding:6px 10px!important;break-inside:avoid}}
-  .cvx .qr{{break-inside:avoid}}
-  .t-side{{grid-template-columns:minmax(0,34fr) minmax(0,66fr)!important}}
-}}</style></head><body>
+@page{{size:{page};margin:.4in}}
+@media print{{.btn{{display:none}}html,body{{background:#fff}}.sheet{{position:static;width:auto}}.cvx{{border-radius:0}}.t-side{{grid-template-columns:minmax(0,34fr) minmax(0,66fr)!important}}.cvx .it,.cvx .qr{{break-inside:avoid}}.cvx .sc h4{{break-after:avoid}}}}</style></head><body>
 <button class="btn" onclick="go()">{html.escape(label)}</button>
-<div class="sheet" id="printSheet">{cv_html(d, tpl, theme, photo, paper=True, qr=qr)}</div>
+<div class="sheet">{cv_html(d, tpl, theme, photo, paper=True, qr=qr)}</div>
 <script>function go(){{var T={js_title},old=null;try{{old=window.parent.document.title;window.parent.document.title=T;}}catch(e){{}}
 var f=(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve();
 f.then(function(){{window.print();try{{if(old!==null)window.parent.document.title=old;}}catch(e){{}}}});}}</script></body></html>"""
@@ -674,8 +660,9 @@ div[data-baseweb="popover"] li:hover,div[data-baseweb="popover"] [aria-selected=
 .fc a:hover{{color:{A}}}
 .stp{{display:flex;gap:14px;align-items:flex-start}}
 .stp .n{{flex:none;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;background:linear-gradient(135deg,{A},{B})}}
-.thumb{{height:440px;overflow:hidden;border-radius:18px;margin-bottom:12px;pointer-events:none;background:rgba(255,255,255,.03)}}
-.thumb .cvx{{zoom:.4;width:250%}}
+.thumb{{position:relative;height:450px;overflow:hidden;border-radius:18px;margin-bottom:12px;pointer-events:none;background:rgba(255,255,255,.03)}}
+.thumb .cvx{{position:absolute;top:0;left:50%;width:800px;margin-left:-400px;transform:scale(.4);transform-origin:top center}}
+.thumb .t-side{{grid-template-columns:minmax(0,34fr) minmax(0,66fr)!important}}
 .tname{{font-weight:800;color:#fff;font-size:1.1rem}}
 .tdesc{{color:#b9c3de;font-size:.92rem;min-height:70px}}
 .foot{{text-align:center;color:#8c97b8;font-size:.88rem;border-top:1px solid rgba(255,255,255,.1);margin-top:50px;padding-top:20px;line-height:1.9}}
@@ -740,6 +727,25 @@ def compress_photo(data, mime):
         return mime, data
 
 
+def load_sample_photo(key):
+    """لو رفعت صور حقيقية جنب app.py بأسماء sample_glass / sample_classic / sample_side (jpg/png/webp)، بتظهر في المعاينات بدل الرسومات."""
+    base = os.path.dirname(os.path.abspath(__file__))
+    for ext in ("jpg", "jpeg", "png", "webp"):
+        fp = os.path.join(base, f"sample_{key}.{ext}")
+        if os.path.exists(fp):
+            try:
+                with open(fp, "rb") as fh:
+                    return compress_photo(fh.read(), "image/jpeg")
+            except Exception:
+                return None
+    return None
+
+
+_REAL = {k: load_sample_photo(k) for k in ("glass", "classic", "side")}
+SAMPLE_PHOTOS = {k: (_REAL[k] or SAMPLE_AVATARS[k]) for k in _REAL}
+REAL_SAMPLES = any(_REAL.values())
+
+
 def resources_html():
     items = [a for a in AFFILIATES if a.get("url")]
     if not items:
@@ -795,7 +801,9 @@ if page == "home":
     c2.button(L["cta_tpl"], on_click=go, args=("templates",), use_container_width=True, key="h_tpl", type="primary")
 
     md(f'<div class="h2s">{html.escape(L["prev_title"])}</div>')
-    md(f'<div style="max-width:880px;margin:auto">{cv_html(demo, "glass", TH)}</div>')
+    md(f'<div style="max-width:880px;margin:auto">{cv_html(demo, "glass", TH, SAMPLE_PHOTOS["glass"])}</div>')
+    if REAL_SAMPLES:
+        md(f'<div class="psub" style="text-align:center;margin-top:10px">{html.escape(L["sample_note"])}</div>')
     md(ad_slot())
 
     md(f'<div class="h2s">{html.escape(L["feat_title"])}</div>')
@@ -893,12 +901,14 @@ elif page == "templates":
     cols = st.columns(3, gap="medium")
     for col, tp in zip(cols, TPLS):
         with col:
-            md(f'<div class="thumb">{cv_html(demo, tp, TH)}</div>'
+            md(f'<div class="thumb">{cv_html(demo, tp, TH, SAMPLE_PHOTOS[tp])}</div>'
                f'<div class="tname">{html.escape(L["tpl_names"][tp])}</div>'
                f'<div class="tdesc">{html.escape(L["tpl_desc"][tp])}</div>')
             if st.session_state.tpl == tp:
                 st.caption("✅ " + L["t_cur"])
             st.button(L["t_use"], on_click=go, args=("builder", tp), key=f"use_{tp}", use_container_width=True, type="primary")
+    if REAL_SAMPLES:
+        md(f'<div class="psub" style="text-align:center;margin-top:10px">{html.escape(L["sample_note"])}</div>')
     md(ad_slot())
 
 # =====================================================================
